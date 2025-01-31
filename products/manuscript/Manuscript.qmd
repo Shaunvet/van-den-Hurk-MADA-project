@@ -1,6 +1,6 @@
 ---
-title: "Example Manuscript Template for a Data Analysis Project"
-author: ""
+title: "Analysis of published transciptomic data studies to identify common genes and potential markers of bovine respiratory disease (BRD) and respiratory infection."
+author: "Shaun van den Hurk"
 format:
   docx:
     toc: false
@@ -13,8 +13,6 @@ csl: ../../assets/american-journal-of-epidemiology.csl
 
 
 
-The structure below is one possible setup for a manuscript, or a general data analysis project (including the course project). Adjust as needed. 
-You don't need to have exactly these sections, but the content covering those sections should be addressed.
 
 This uses MS Word as output format. [See here](https://quarto.org/docs/output-formats/ms-word.html) for more information. You can switch to other formats, like html or pdf. See [the Quarto documentation](https://quarto.org/) for other formats.
 
@@ -53,6 +51,11 @@ author's own and don't reflect their employer.
 
 # Summary/Abstract
 _Write a summary of your project._
+Respiratory disease is an important condition that affects the health, welfare and production of cattle. Respiratory disease in cattle is often attributed to the Bovine Respiratory Disease Complex (BRDC) and can be caused by a number of different pathogens. Currently there are over 9 different viruses and bacteria that are implicated in the BRDC, with the list growing, and potentiated by factors such as the environment and management factors.
+
+The proposed project is a type of meta-analysis of different published datasets of transcriptomic data as a means to identify some potential biomarkers (such as miRNA) that might be differentially expressed with respiratory infection in bovines. The focus will be on the gene pathways that appear to be differentially expressed. The aim is to identify if there are any associations between infection (broadly and with specific pathogens) and these transcripts, which then could be used as a predictor of disease. 
+
+
 
 
 {{< pagebreak >}}
@@ -65,9 +68,29 @@ _Provide enough background on your topic that others can understand the why and 
 
 ## Description of data and data source
 _Describe what the data is, what it contains, where it is from, etc. Eventually this might be part of a methods section._
+The data to be used is from published studies and online data found on the NCBI Gene Expression Omnibus (GEO) database. A search was performed on this database to look for data related to bovine respiratory disease as well as transcriptome, and/or protein and/or genes. There were between 10 than 22 results search results (depending on the search) on the database, and from these projects with published data, relevant projects are being identified. The studies are only included if they have retrievable data uploaded, either on the GEO database or the corresponding published article (including supplemental data).
+
+
+Currently, five potential suitable sources have been identified, one such source is listed on GEO as "GSE199108", with the published article citation "O'Donoghue, S., Earley, B., Johnston, D., Mccabe, M.S., KIM, J., Taylor, J.F., Duffy, C., Lemon, K., Mcmenamy, M., Cosby, S.L. and Morris, D.W., Whole blood transcriptome analysis in dairy calves experimentally challenged with Bovine Herpesvirus 1 (BoHV-1) and comparison to a Bovine Respiratory Syncytial Virus (BRSV) challenge. Frontiers in Genetics, 14, p.171.".
+From the mentioned resources, the data with the gene counts and other raw data will be retrieved and these Excel and Text files will provide the raw data. 
+The researchers from these studies published the raw data and the scientific journal article, but not their analysis or their workflow for this. Additionally, each of these studies was performed with direct sampling, and I am not familiar with a study that has combined all of the data in a meta-analysis with collation of the data for a deeper analysis of these transcriptome profiles in cattle.
+
+
 
 ## Questions/Hypotheses to be addressed
 _State the research questions you plan to answer with this analysis._
+
+- Are there differences in the expression of genes and proteins between healthy and infected cattle that can be identified through transciptomic analysis? Can these genes be identied in this way.
+
+- Are there any genes or biomarkers that are associated with infection with particular pathogens?
+
+- Are there any common genes or biomarkers identified that are associated with infection with multiple different pathogens?
+
+
+Thus the outcomes of interest are primarily the levels of expression of these targets and the disease status of the animals sampled.
+
+
+
 
 To cite other work (important everywhere, but likely happens first in introduction), make sure your references are in the bibtex file specified in the YAML header above and have the right bibtex key. Then you can include like this:
 
@@ -81,6 +104,15 @@ Examples of reproducible research projects can for instance be found in [@mckay2
 # Methods 
 
 _Describe your methods. That should describe the data, the cleaning processes, and the analysis approaches. You might want to provide a shorter description here and all the details in the supplement._
+
+The raw data has samples from healthy and experimentally infected animals which will be compared to get an indication of differential expression of certain genes between these groups. This will serve as the basis for the analysis as the focus will be on the subset of differentially expressed genes.
+The raw data from the different sources will be cleaned up in R and analysed before they are combined in a single analysis to look for common features and to compare the expression profiles. Heatmaps will be helpful to help identify and visualise the differential expression of genes, and an approach might be to sample the top 10 genes with high and low levels of expression. 
+Statistical analysis will focus largely on the associations between the factors, for example a t-test, and regression models might be considered too. We will look for associations between gene expression and infection status (heath vs infected).
+
+It is expected that there will be some obvious differences in these levels of expression that will be asociated with the disease status and that many of these will be common between the different respiratory pathogens.
+
+If potential genes or biomarkers are identified they will be run through online sources and databases (including tools such as the PubChem online tool) to identify the common names (or symbol) and proposed functions of these genes.
+
 
 
 ## Schematic of workflow

@@ -1,5 +1,8 @@
 # Overview
 
+This is Shaun van den Hurk's project repository for the MADA course research project.
+
+
 A template file and folder structure for a data analysis project/paper done with R/Quarto/Github. Other components (e.g., other programming languages) can be added as needed. 
 
 
