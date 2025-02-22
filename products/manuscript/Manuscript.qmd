@@ -1,5 +1,5 @@
 ---
-title: "Analysis of published transciptomic data studies to identify common genes and potential markers of bovine respiratory disease (BRD) and respiratory infection."
+title: "Investigating the incidence and potential risk factors for hypertension-related mortalities in adults in the United States."
 author: "Shaun van den Hurk"
 format:
   docx:
@@ -14,7 +14,7 @@ csl: ../../assets/american-journal-of-epidemiology.csl
 
 
 
-This uses MS Word as output format. [See here](https://quarto.org/docs/output-formats/ms-word.html) for more information. You can switch to other formats, like html or pdf. See [the Quarto documentation](https://quarto.org/) for other formats.
+
 
 
 ```{r, echo=FALSE, message=FALSE}
@@ -22,6 +22,7 @@ This uses MS Word as output format. [See here](https://quarto.org/docs/output-fo
 library(here)
 library(knitr)
 ```
+
 
 
 **Authors**  
@@ -33,9 +34,8 @@ library(knitr)
 
 **Author affiliations**  
 
-1. College of Public Health, University of Georgia, Athens, GA, USA.
-2. Another Affiliation, Athens, GA, USA.
-3. Yet another Affiliation.
+1. College of Veterinary Medicine, University of Georgia, Athens, GA, USA.
+
 
 $*$ These authors contributed equally to this work.
 
@@ -50,10 +50,8 @@ author's own and don't reflect their employer.
 
 
 # Summary/Abstract
-_Write a summary of your project._
-Respiratory disease is an important condition that affects the health, welfare and production of cattle. Respiratory disease in cattle is often attributed to the Bovine Respiratory Disease Complex (BRDC) and can be caused by a number of different pathogens. Currently there are over 9 different viruses and bacteria that are implicated in the BRDC, with the list growing, and potentiated by factors such as the environment and management factors.
-
-The proposed project is a type of meta-analysis of different published datasets of transcriptomic data as a means to identify some potential biomarkers (such as miRNA) that might be differentially expressed with respiratory infection in bovines. The focus will be on the gene pathways that appear to be differentially expressed. The aim is to identify if there are any associations between infection (broadly and with specific pathogens) and these transcripts, which then could be used as a predictor of disease. 
+Lifestyle diseases such as cardiovascular disease make up the highest causes of death in developed nations such as the United States. This project focuses on hypertension-related cardiovascular disease and hopes to help provide a greater understandign of the dynamics and patterns that may exist with hypertension and cardiovascualr diseased related mortality in the United States.
+The project seeks to evaluate data from the CDC on the rates of hypertension-related cardiovascular disease mortality and the associated demographic factors for this collected data, including county, age group, race/ethnicity, and sex. The data represents information collected from 2000 to 2019. This will be used to see if there are any potential patterns or correlation between the rate of mortality and these other demographic factors within the data. 
 
 
 
@@ -64,37 +62,24 @@ The proposed project is a type of meta-analysis of different published datasets 
 # Introduction 
 
 ## General Background Information
-_Provide enough background on your topic that others can understand the why and how of your analysis_ 
+
+Lifestyle diseases such as cardiovascular disease make up the highest causes of death in developed nations such as the United States. This data analysis hopes to evaluate the rates of hypertension-related cardiovascular disease mortality in adults in the United States and trends that might be associated with demographic and geographic factors. 
+
+
+
+
 
 ## Description of data and data source
-_Describe what the data is, what it contains, where it is from, etc. Eventually this might be part of a methods section._
-The data to be used is from published studies and online data found on the NCBI Gene Expression Omnibus (GEO) database. A search was performed on this database to look for data related to bovine respiratory disease as well as transcriptome, and/or protein and/or genes. There were between 10 than 22 results search results (depending on the search) on the database, and from these projects with published data, relevant projects are being identified. The studies are only included if they have retrievable data uploaded, either on the GEO database or the corresponding published article (including supplemental data).
 
-
-Currently, five potential suitable sources have been identified, one such source is listed on GEO as "GSE199108", with the published article citation "O'Donoghue, S., Earley, B., Johnston, D., Mccabe, M.S., KIM, J., Taylor, J.F., Duffy, C., Lemon, K., Mcmenamy, M., Cosby, S.L. and Morris, D.W., Whole blood transcriptome analysis in dairy calves experimentally challenged with Bovine Herpesvirus 1 (BoHV-1) and comparison to a Bovine Respiratory Syncytial Virus (BRSV) challenge. Frontiers in Genetics, 14, p.171.".
-From the mentioned resources, the data with the gene counts and other raw data will be retrieved and these Excel and Text files will provide the raw data. 
-The researchers from these studies published the raw data and the scientific journal article, but not their analysis or their workflow for this. Additionally, each of these studies was performed with direct sampling, and I am not familiar with a study that has combined all of the data in a meta-analysis with collation of the data for a deeper analysis of these transcriptome profiles in cattle.
+The dataset was collected from the CDC website and the information was sourced from the National Vital Statistics System. The dataset contains rates and trends in the hypertension-related cardiovascular disease (CVD) death rates. The study period is from 2000 to 2019, with two main intervals displayed in the data 2000-2009, and 2010-2019. The data is further distributed by county, age group (36-64 years and 65 years and older), race/ethnicity, and sex.
 
 
 
 ## Questions/Hypotheses to be addressed
-_State the research questions you plan to answer with this analysis._
 
-- Are there differences in the expression of genes and proteins between healthy and infected cattle that can be identified through transciptomic analysis? Can these genes be identied in this way.
+- Hypertension-related cardiovascular disease mortalities are higher in select demographics (age groups, race/ethnicities and sex), and thus these demographics show correlated with mortalities rates.
 
-- Are there any genes or biomarkers that are associated with infection with particular pathogens?
-
-- Are there any common genes or biomarkers identified that are associated with infection with multiple different pathogens?
-
-
-Thus the outcomes of interest are primarily the levels of expression of these targets and the disease status of the animals sampled.
-
-
-
-
-To cite other work (important everywhere, but likely happens first in introduction), make sure your references are in the bibtex file specified in the YAML header above and have the right bibtex key. Then you can include like this:
-
-Examples of reproducible research projects can for instance be found in [@mckay2020; @mckay2020a].
+- There are clear regional/geographic distributions associated with hypertension-related cardiovascular disease mortalities. 
 
 
 
@@ -103,43 +88,56 @@ Examples of reproducible research projects can for instance be found in [@mckay2
 
 # Methods 
 
-_Describe your methods. That should describe the data, the cleaning processes, and the analysis approaches. You might want to provide a shorter description here and all the details in the supplement._
-
-The raw data has samples from healthy and experimentally infected animals which will be compared to get an indication of differential expression of certain genes between these groups. This will serve as the basis for the analysis as the focus will be on the subset of differentially expressed genes.
-The raw data from the different sources will be cleaned up in R and analysed before they are combined in a single analysis to look for common features and to compare the expression profiles. Heatmaps will be helpful to help identify and visualise the differential expression of genes, and an approach might be to sample the top 10 genes with high and low levels of expression. 
-Statistical analysis will focus largely on the associations between the factors, for example a t-test, and regression models might be considered too. We will look for associations between gene expression and infection status (heath vs infected).
-
-It is expected that there will be some obvious differences in these levels of expression that will be asociated with the disease status and that many of these will be common between the different respiratory pathogens.
-
-If potential genes or biomarkers are identified they will be run through online sources and databases (including tools such as the PubChem online tool) to identify the common names (or symbol) and proposed functions of these genes.
-
-
-
-## Schematic of workflow
-
-Sometimes you might want to show a schematic diagram/figure that was not created with code (if you can do it with code, do it). @fig-schematic is an example of some - completely random/unrelated - schematic that was generated with Biorender.
-We store those figures in the `assets` folder.
-
-```{r}
-#| label: fig-schematic
-#| fig-cap: "A figure that is manually generated and shows some overview/schematic. This has nothing to do with the data, it's just a random one from one of our projects I found and placed here."
-#| echo: FALSE
-knitr::include_graphics(here("assets","antigen-recognition.png"))
-```
 
 
 
 
-## Data aquisition
-_As applicable, explain where and how you got the data. If you directly import the data from an online source, you can combine this section with the next._
 
 
 ## Data import and cleaning
-_Write code that reads in the file and cleans it so it's ready for analysis. Since this will be fairly long code for most datasets, it might be a good idea to have it in one or several R scripts. If that is the case, explain here briefly what kind of cleaning/processing you do, and provide more details and well documented code somewhere (e.g. as supplement in a paper). All materials, including files that contain code, should be commented well so everyone can follow along._
 
+This data was downloaded from the CDC online database at the following url: https://data.cdc.gov/Heart-Disease-Stroke-Prevention/Rates-and-Trends-in-Hypertension-related-Cardiovas/uc9k-vc2j/about_data. A csv file was downloaded which was almost 300MB in size. The initial document/dataset contained 1103872 observations across 24 variables. There were some initial processing steps performed to evaluate and delete some of the unnecessary columns and to save this data to a .rds document to reduce the size. This was all outlined in the "processingcode" document, which will not run automatically because the Excel (csv) file will not be available due to size concerns.
+
+The intial exploration and cleaning and removal of the redundant columns (columns with repeated single values without any additional information). Some of the other columns were renamed to have the name of the column reflect what these single value columns had contained instead. The columns were checked to see what they contained and to see how many unique entries there were and based upon this columns were deleted and others renamed.
+
+Deleted columns were: DataSource, Topic, Class, StratificationCategory1/2/3, Data_Value_Footnote, Data_Value_Footnote_Symbol, Geographic_Level, TopicID
+
+Renamed columns: 
+Stratification1 column to age_group, Stratification2 column to race_ethnicity, Stratification3 column to sex, Data_Value to mortalities.
+
+
+After the initial cleaning the data was evaluated again and some further small cleaning and processing steps were performed (code is visible in the processingfile-v1.qmd file) to reduce the number of rows by removing NA values. The resulting dataframe contains 572572 observations and 14 variables.
+
+Our summaries and the skimr function help to provide a good overview for further evaluation of the data. 
+We can see that our dataset contains a combination of numeric and character data. 
+The numeric data includes the actual incidence rates of the hypertension-related cardiovascular disease death rates, as well as the confidence intervals that were used, and geographic coordinates.
+Our character data includes the race, sex, age group, location data and the year.
+
+This character data will be used as predictors of the mortality data as we break down these different variables and look for potential patterns and associations. The primary outcome of interest is the mortality rates but the important potential predictors are the location, year, race/ethnicity, and sex. AGe groups only provide two broad categories, namely 35 to 65 years old and 65 years and older, which is a bit limited but will allow for comparisons between these two groups.
+
+A summary table was produced using the skimr function which is printed below.
+
+
+```{r}
+skim_summary_hypertens_filtered <- readRDS(here::here("data","processed-data", "skim_summary_hypertens_filtered.rds"))
+# Print the skim summary
+print(skim_summary_hypertens_filtered)
+
+```
+
+
+Our skimr data shows that the mean of the hypertension cardiovascular-diseases mortalities is around 203, with a standard deviation of 223.
+
+A histogram was made of the mortalities columns since this is the main (only) column of interest with numerical data.
+
+```{r}
+mortalities_histogram <- readRDS(here::here("data","processed-data", "mortalities_histogram.rds"))
+# Print the mortalities histogram
+plot(mortalities_histogram)
+```
 
 ## Statistical analysis
-_Explain anything related to your statistical analyses._
+
 
 
 {{< pagebreak >}}
@@ -149,51 +147,16 @@ _Explain anything related to your statistical analyses._
 
 ## Exploratory/Descriptive analysis
 
-_Use a combination of text/tables/figures to explore and describe your data. Show the most important descriptive results here. Additional ones should go in the supplement. Even more can be in the R and Quarto files that are part of your project._
-
-
-@tbl-summarytable shows a summary of the data.
-
-Note the loading of the data providing a **relative** path using the `../../` notation. (Two dots means a folder up). You never want to specify an **absolute** path like `C:\ahandel\myproject\results\` because if you share this with someone, it won't work for them since they don't have that path. You can also use the `here` R package to create paths. See examples of that below. I generally recommend the `here` package.
-
-```{r}
-#| label: tbl-summarytable
-#| tbl-cap: "Data summary table."
-#| echo: FALSE
-resulttable=readRDS("../../results/tables/summarytable.rds")
-knitr::kable(resulttable)
-```
 
 
 
 ## Basic statistical analysis
 
-_To get some further insight into your data, if reasonable you could compute simple statistics (e.g. simple models with 1 predictor) to look for associations between your outcome(s) and each individual predictor variable. Though note that unless you pre-specified the outcome and main exposure, any "p<0.05 means statistical significance" interpretation is not valid._
-
-
-@fig-result shows a scatterplot figure produced by one of the R scripts.
-
-```{r}
-#| label: fig-result
-#| fig-cap: "Height and weight stratified by gender."
-#| echo: FALSE
-knitr::include_graphics(here("results","figures","height-weight-stratified.png"))
-```
 
 
 ## Full analysis
 
-_Use one or several suitable statistical/machine learning methods to analyze your data and to produce meaningful figures, tables, etc. This might again be code that is best placed in one or several separate R scripts that need to be well documented. You want the code to produce figures and data ready for display as tables, and save those. Then you load them here._
-
-Example @tbl-resulttable2 shows a summary of a linear model fit.
-
-```{r}
-#| label: tbl-resulttable2
-#| tbl-cap: "Linear model fit table."
-#| echo: FALSE
-resulttable2 = readRDS(here("results","tables","resulttable2.rds"))
-knitr::kable(resulttable2)
-```
+_
 
 
 {{< pagebreak >}}
@@ -202,19 +165,13 @@ knitr::kable(resulttable2)
 # Discussion
 
 ## Summary and Interpretation
-_Summarize what you did, what you found and what it means._
+
 
 ## Strengths and Limitations
-_Discuss what you perceive as strengths and limitations of your analysis._
+
 
 ## Conclusions
-_What are the main take-home messages?_
 
-_Include citations in your Rmd file using bibtex, the list of references will automatically be placed at the end_
-
-This paper [@leek2015] discusses types of analyses. 
-
-These papers [@mckay2020; @mckay2020a] are good examples of papers published using a fully reproducible setup similar to the one shown in this template. 
 
 Note that this cited reference will show up at the end of the document, the reference formatting is determined by the CSL file specified in the YAML header. Many more style files for almost any journal [are available](https://www.zotero.org/styles). You also specify the location of your bibtex reference file in the YAML. You can call your reference file anything you like.
 

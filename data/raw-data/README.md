@@ -1,14 +1,3 @@
 #raw-data
-
-This folder should contain all raw data. As needed add sub-folders.
-
-Currently, as an example, it contains a simple made-up data-set in an Excel file.
-
-The dataset contains the variables `Height`, `Weight` and `Gender` of a few imaginary individuals.
-
-The dataset purposefully contains some faulty entries that need to be cleaned.
-
-Generally, any dataset should contain some meta-data explaining what each variable in the dataset is. (This is often called a **Codebook**.) For this simple example, the codebook is given as a second sheet in the Excel file.
-
-This raw data-set should generally not be edited by hand. It should instead be loaded and processed/cleaned using code.
-
+The raw data in this file is the RDS file that was produced after initial cleaning steps. This was due to size constraints with the original Excel sheet and uploads on GitHub. to get the original Excel sheet, follow the link from the manuscript.
+This RDS document is used for the second stage of cleaning which was done in the processingfile-v1.qmd file.

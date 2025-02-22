@@ -1,18 +1,20 @@
 ---
-title: "An example cleaning script"
-author: "Andreas Handel"
-date: "2024-02-07"
+title: "Processing CDC hypertension and CDV Mortality disease data from adults in the USA"
+author: "Shaun van den Hurk"
+date: "2025-02-20"
 output: html_document
 ---
 
+This file is a continuation of the data processing and wrangling steps. 
+The first document highlighted the steps from importing the Excel document, the intial exploration and how the data was cleaned and reduced in R to remove the redundant columns (columns with single values).
+Some of the other columns were renamed to have the name of the column reflect what these single value columns had contained.
+The dataframe was then saved as an RDS file.
 
-# Processing script
+The initial Excel sheet was removed from the repository because it was almost 300MB and this was not suitable for uploading to the GitHUB repository.
+Therefore, the code in that first document will not run because the file was removed. But the file remains to show the steps that were executed. If desired, the source Excel document could be downloaded from the CDC and steps run.
 
-This contains the same code and comments/information as `processingcode.R`.
-
-This just shows it as Quarto file, to give you an idea how to do it in a setup that combines code and text in a single file.
-
-See the other Quarto file for my currently preferred approach of pulling code from the R script into the Quarto file.
+This document will load the RDS file and continue with some of the data processing, namely providing a couple of figures and summary tables of the dataset.
+We likely do not need to do much further cleaning as that was done in the other steps.
 
 
 # Setup
@@ -20,11 +22,12 @@ See the other Quarto file for my currently preferred approach of pulling code fr
 Load needed packages. make sure they are installed.
 
 ```{r}
-library(readxl) #for loading Excel files
+library(readxl) #for loading Excel files (in case we want to include an additional dataset)
 library(dplyr) #for data processing/cleaning
 library(tidyr) #for data processing/cleaning
 library(skimr) #for nice visualization of data 
 library(here) #to set paths
+library(knitr) #for nice tables and data integration
 ```
 
 
@@ -37,107 +40,92 @@ but it adds typing. You can do it either way.
 ```{r}
 # path to data
 # note the use of the here() package and not absolute paths
-data_location <- here::here("data","raw-data","exampledata.xlsx")
-rawdata <- readxl::read_excel(data_location)
+cleaned_hypertension_adult_mortality_location <- here::here("data","raw-data","cleaned_hypertens_adult_mortality.rds")
+cleaned_hypertens_mortailty_adult <- readRDS(cleaned_hypertension_adult_mortality_location)
 ```
 
 
 # Check data
 
-First we can look at the codebook
+
+We check the data again.
 
 ```{r}
-codebook <- readxl::read_excel(data_location, sheet ="Codebook")
-print(codebook)
-```
+dplyr::glimpse(cleaned_hypertens_mortailty_adult)
+summary(cleaned_hypertens_mortailty_adult)
 
-
-Several ways of looking at the data
-
-```{r}
-dplyr::glimpse(rawdata)
-summary(rawdata)
-head(rawdata)
-skimr::skim(rawdata)
 ```
 
 
 
 # Cleaning
-
-By inspecting the data as done above, we find some problems that need addressing:
-
-First, there is an entry for height which says "sixty" instead of a number. 
-Does that mean it should be a numeric 60? It somehow doesn't make sense since the weight is 60kg, which can't happen for a 60cm person (a baby).
-Since we don't know how to fix this, we might decide to remove the person. This "sixty" entry also turned all Height entries into characters instead of numeric. That conversion to character also means that our summary function isn't very meaningful. So let's fix that first.
+From our summary we can see that there are still a lot of NA values in our dataset. 
+We want to look at these more closely to see if there is any valuable information in these rows or if we should just remove them.
 
 ```{r}
-d1 <- rawdata %>% dplyr::filter( Height != "sixty" ) %>% 
-                  dplyr::mutate(Height = as.numeric(Height))
-skimr::skim(d1)
-hist(d1$Height)
+#Use filter function to search for rows with NA values in the mortalities column.
+NA_Data <- cleaned_hypertens_mortailty_adult |> filter(is.na(mortalities))
+#Checking these NA values
+summary(NA_Data)
+print(NA_Data)
+View(NA_Data)
+
 ```
 
-Now we see that there is one person with a height of 6. That could be a typo, or someone mistakenly entered their height in feet. Since we unfortunately don't know, we might need to remove this person, which we'll do here.
+There do not seem to be any data values attached to these NA values. So we will remove them and create a new dataset without them. 
 
 ```{r}
-d2 <- d1 %>% dplyr::mutate( Height = replace(Height, Height=="6",round(6*30.48,0)) )
-skimr::skim(d2)
+#Once again using the filter function to leave us the dataframe without NA values
+hypertens_adult_filtered <- cleaned_hypertens_mortailty_adult |> filter(!is.na(mortalities))
+summary(hypertens_adult_filtered)
+skimr::skim(hypertens_adult_filtered)
+print(hypertens_adult_filtered)
 ```
 
-Height values seem ok now.
-
-Now let's look at the `Weight` variable. There is a person with weight of 7000, which is impossible, and one person with missing weight.
-To be able to analyze the data, we'll remove those individuals as well.
+We want a copy of this skimr data for a table for the mauscript. We will make edits of this later in the process.
 
 ```{r}
-d3 <- d2 %>%  dplyr::filter(Weight != 7000) %>% tidyr::drop_na()
-skimr::skim(d3)
-```
+skim_summary_hypertens_filtered<-skimr::skim(hypertens_adult_filtered)|> as.data.frame()
+kable(skim_summary_hypertens_filtered)
+saveRDS(skim_summary_hypertens_filtered, file = here::here("data","processed-data", "skim_summary_hypertens_filtered.rds"))
+print(skim_summary_hypertens_filtered)
 
-Now checking the `Gender` variable. Gender should be a categorical/factor variable but is loaded as character. We can fix that with simple base R code to mix things up.
-
-```{r}
-d3$Gender <- as.factor(d3$Gender)  
-skimr::skim(d3)
 ```
 
 
-Now we see that there is another NA, but it's not `NA` from R, instead it was loaded as character and is now considered as a category.
-Well proceed here by removing that individual with that NA entry. Since this keeps an empty category for Gender, I'm also using droplevels() to get rid of it.
+Our filtered data is now down to 572572 observations (from the initial 1.1 million). We have also removed many of the unnecessary columns (down to 14 from the initial 24).
 
-```{r}
-d4 <- d3 %>% dplyr::filter( !(Gender %in% c("NA","N")) ) %>% droplevels()
-skimr::skim(d4)
+Our summaries and the skimr function help to provide a good overview for further evaluation of the data. 
+We can see that our dataset contains a combination of numeric and character data. 
+The numeric data includes the actual incidence rates of the hypertension-related cardiovascular disease death rates, as well as the confidence intervals that were used, and geographic coordinates.
+Our character data includes the race, sex, age group, location data and the year.
+
+This character data will be used as predictors of the mortality data as we break down these different variables and look for potential patterns and associations. The primary outcome of interest is the mortality rates but the important potential predictors are the location, year, race/ethnicity, and sex. AGe groups only provide two broad categories, namely 35 to 65 years old and 65 years and older, which is a bit limited but will allow for comparisons between these two groups.
+
+
+Our skimr data shows that the mean of the hypertension cardiovascular-diseases mortalities is around 203, with a standard deviation of 223. 
+We want to get an idea on the distribution of this data and will use a histogram for this.
+
+```{r histogram mortalities}
+#Generate a histogram of the mortality rates
+mortalities_histogram <- hist(hypertens_adult_filtered$mortalities)
+saveRDS(mortalities_histogram, file = here::here("data","processed-data", "mortalities_histogram.rds"))
+plot(mortalities_histogram <- readRDS(here::here("data","processed-data", "mortalities_histogram.rds"))
+# Print the mortalities histogram
+print(mortalities_histogram))
 ```
 
 
-All done, data is clean now. 
 
-Let's assign at the end to some final variable, this makes it easier to add further cleaning steps above.
-
-```{r}
-processeddata <- d4
-```
-
+We are happy with this for now.
 
 # Save data 
-
-Finally, we save the clean data as RDS file. I suggest you save your processed and cleaned data as RDS or RDA/Rdata files. 
-This preserves coding like factors, characters, numeric, etc.  If you save as CSV, that information would get lost.
-However, CSV is better for sharing with others since it's plain text. If you do CSV, you might want to write down somewhere what each variable is.
-
-See here for some suggestions on how to store your processed data:
-http://www.sthda.com/english/wiki/saving-data-into-r-data-format-rds-and-rdata
+The cleaned data will be saved as a new RDS file which will go under the processed data.
 
 ```{r}
 save_data_location <- here::here("data","processed-data","processeddata.rds")
-saveRDS(processeddata, file = save_data_location)
+saveRDS(hypertens_adult_filtered, file = save_data_location)
 ```
 
 
-
-# Notes
-
-Removing anyone who had "faulty" or missing data is one approach. It's often not the best. based on your question and your analysis approach, you might want to do cleaning differently (e.g. keep individuals with some missing information).
 
