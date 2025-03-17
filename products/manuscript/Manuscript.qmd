@@ -19,8 +19,10 @@ csl: ../../assets/american-journal-of-epidemiology.csl
 
 ```{r, echo=FALSE, message=FALSE}
 # load a few R packages
+#install.packages("magick")
 library(here)
 library(knitr)
+library(magick)
 ```
 
 
@@ -115,26 +117,8 @@ Our character data includes the race, sex, age group, location data and the year
 
 This character data will be used as predictors of the mortality data as we break down these different variables and look for potential patterns and associations. The primary outcome of interest is the mortality rates but the important potential predictors are the location, year, race/ethnicity, and sex. AGe groups only provide two broad categories, namely 35 to 65 years old and 65 years and older, which is a bit limited but will allow for comparisons between these two groups.
 
-A summary table was produced using the skimr function which is printed below.
 
 
-```{r}
-skim_summary_hypertens_filtered <- readRDS(here::here("data","processed-data", "skim_summary_hypertens_filtered.rds"))
-# Print the skim summary
-print(skim_summary_hypertens_filtered)
-
-```
-
-
-Our skimr data shows that the mean of the hypertension cardiovascular-diseases mortalities is around 203, with a standard deviation of 223.
-
-A histogram was made of the mortalities columns since this is the main (only) column of interest with numerical data.
-
-```{r}
-mortalities_histogram <- readRDS(here::here("data","processed-data", "mortalities_histogram.rds"))
-# Print the mortalities histogram
-plot(mortalities_histogram)
-```
 
 ## Statistical analysis
 
@@ -147,10 +131,78 @@ plot(mortalities_histogram)
 
 ## Exploratory/Descriptive analysis
 
+A summary table was produced using the skimr function which is printed below.
 
+
+```{r}
+skim_summary_hypertens_filtered <- readRDS(here::here("data","processed-data", "skim_summary_hypertens_filtered.rds"))
+# Print the skim summary
+print(skim_summary_hypertens_filtered)
+
+```
+
+Our summary data shows that the mean of the hypertension cardiovascular-diseases mortalities is around 203, with a standard deviation of 223.
+
+A histogram was made of the mortalities columns since this is the main (only) column of interest with numerical data.
+
+```{r}
+revised_mortalities_histogram <- readRDS(here::here("data","processed-data", "revised_mortalities_histogram.rds"))
+# Print the mortalities histogram
+plot(revised_mortalities_histogram)
+```
+
+
+Our histogram depicts the hypertension-related cardiovasculat disease mortalities in the dataset, showing the number of mortalities and the frequency (count) of sprecific mortality values.
+The mortality counts are clustered towards the lower end of the scale, with a strong right-skew (long tail to the right/higher values). Peak mortalities are below 100, and the total values likely account for the second peak.
+
+
+Boxplots were created to evaluate the mortalities by race and by sex.
+
+```{r}
+mortality_race_boxplot <- image_read(here::here("products", "manuscript", "supplement", "mortality_by_race.png"))
+print(mortality_race_boxplot)
+
+
+mortality_sex_boxplot <- image_read(here::here("products", "manuscript", "supplement", "mortality_by_sex.png"))
+print(mortality_sex_boxplot)
+```
+
+
+## Key Findings and Next Steps
+
+- The distribution of mortality rates is right-skewed, suggesting potential transformations before modeling.
+- Mortality rates vary markedly by race and sex, justifying stratified analysis.
+- A proof-of-concept temporal trend was created for a single county (Calhoun, GA) using Location ID, ensuring unique selection.
+- Temporal trend indicate a general increase the selected county, which should be modeled.
+- All processed data has been saved into a single RDS file (`final_processed_data.rds`) for use in statistical analysis.
 
 
 ## Basic statistical analysis
+
+Spatial plots of mortalities per geographic regions were generated for each race and compared on one plot. Two generalized linear models were evaluated, the first examined how time, race/ethnicity, and sex (plot below) influence mortality rates, and the second tested whether the effect of time varied by race/ethnicity.
+
+
+Overall, black individuals had the highest predcted mortality rates from the generalized linear models, followed by white and native american populations. Black individuals also had the highest hypertension-related mortalities on the boxplot follwoed by white individuals.
+Females appeared to have lower mortality rates than males across all races.
+
+Race, sex and time all seem to be predictors of mortality. We see differences in trends over time for different racial groups. 
+
+Our spatial clustering has revealed geographic clustering of high-mortality regions, with high densities in the Eastern regions of the country. There also appears to be a higher density of mortalities from people in the race/ethnic group Black in certain regions. Asian and Pacific Islander groups had relatively lower mortality rates and geographic clustering.
+
+
+```{r}
+#Print the glm plot
+glm_interaction_plot <- image_read(here::here("products", "manuscript", "supplement", "glm_interaction_plot.png"))
+print(glm_interaction_plot)
+```
+
+
+```{r}
+#Print the combined spatial plot
+combined_spatial_plot <- image_read(here::here("products", "manuscript", "supplement", "combined_spatial_plot.png"))
+print(combined_spatial_plot)
+```
+
 
 
 

@@ -2,14 +2,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.549">
+<meta name="generator" content="quarto-1.6.40">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Andreas Handel">
-<meta name="dcterms.date" content="2024-02-07">
+<meta name="author" content="Shaun van den Hurk">
+<meta name="dcterms.date" content="2025-02-20">
 
-<title>An example cleaning script</title>
+<title>Processing CDC hypertension and CDV Mortality disease data from adults in the USA</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -35,7 +35,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -65,10 +65,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="processingfile-v1_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="processingfile-v1_files/libs/quarto-html/anchor.min.js"></script>
 <link href="processingfile-v1_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="processingfile-v1_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="processingfile-v1_files/libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="processingfile-v1_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="processingfile-v1_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="processingfile-v1_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="processingfile-v1_files/libs/bootstrap/bootstrap-8a79a254b8e706d3c925cde0a310d4f0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -81,7 +81,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">An example cleaning script</h1>
+<h1 class="title">Processing CDC hypertension and CDV Mortality disease data from adults in the USA</h1>
 </div>
 
 
@@ -91,14 +91,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>Andreas Handel </p>
+             <p>Shaun van den Hurk </p>
           </div>
   </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 7, 2024</p>
+      <p class="date">February 20, 2025</p>
     </div>
   </div>
   
@@ -110,18 +110,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="processing-script" class="level1">
-<h1>Processing script</h1>
-<p>This contains the same code and comments/information as <code>processingcode.R</code>.</p>
-<p>This just shows it as Quarto file, to give you an idea how to do it in a setup that combines code and text in a single file.</p>
-<p>See the other Quarto file for my currently preferred approach of pulling code from the R script into the Quarto file.</p>
-</section>
+<p>This file is a continuation of the data processing and wrangling steps. The first document highlighted the steps from importing the Excel document, the intial exploration and how the data was cleaned and reduced in R to remove the redundant columns (columns with single values). Some of the other columns were renamed to have the name of the column reflect what these single value columns had contained. The dataframe was then saved as an RDS file.</p>
+<p>The initial Excel sheet was removed from the repository because it was almost 300MB and this was not suitable for uploading to the GitHUB repository. Therefore, the code in that first document will not run because the file was removed. But the file remains to show the steps that were executed. If desired, the source Excel document could be downloaded from the CDC and steps run.</p>
+<p>This document will load the RDS file and continue with some of the data processing, namely providing a couple of figures and summary tables of the dataset. We likely do not need to do much further cleaning as that was done in the other steps.</p>
 <section id="setup" class="level1">
 <h1>Setup</h1>
 <p>Load needed packages. make sure they are installed.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl) <span class="co">#for loading Excel files</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr) <span class="co">#for data processing/cleaning</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages("sf")</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl) <span class="co">#for loading Excel files (in case we want to include an additional dataset)</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr) <span class="co">#for data processing/cleaning</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'dplyr'</code></pre>
@@ -137,233 +136,218 @@ Attaching package: 'dplyr'</code></pre>
     intersect, setdiff, setequal, union</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr) <span class="co">#for data processing/cleaning</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(skimr) <span class="co">#for nice visualization of data </span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here) <span class="co">#to set paths</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(skimr) <span class="co">#for nice visualization of data </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>here() starts at D:/Github/ahgroup/data-analysis-template</code></pre>
+<pre><code>Warning: package 'skimr' was built under R version 4.4.2</code></pre>
 </div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here) <span class="co">#to set paths</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>here() starts at E:/Shaun Documents/Work/Work/UGA/PhD/MADA/van-den-Hurk-MADA-project</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr) <span class="co">#for nice tables and data integration</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(corrplot) <span class="co">#for correlation matrix visualization</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>corrplot 0.92 loaded</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf) <span class="co">#for geospatial analysis</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'sf' was built under R version 4.4.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Linking to GEOS 3.13.0, GDAL 3.10.1, PROJ 9.5.1; sf_use_s2() is TRUE</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggpubr) <span class="co">#for advanced visualization tools</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: ggplot2</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2) <span class="co">#for plots</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="data-loading" class="level1">
 <h1>Data loading</h1>
 <p>Note that for functions that come from specific packages (instead of base R), I often specify both package and function like so: package::function() that’s not required one could just call the function specifying the package makes it clearer where the function “lives”, but it adds typing. You can do it either way.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># path to data</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># note the use of the here() package and not absolute paths</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>data_location <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"raw-data"</span>,<span class="st">"exampledata.xlsx"</span>)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>rawdata <span class="ot">&lt;-</span> readxl<span class="sc">::</span><span class="fu">read_excel</span>(data_location)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># path to data</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co"># note the use of the here() package and not absolute paths</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>cleaned_hypertension_adult_mortality_location <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"raw-data"</span>,<span class="st">"cleaned_hypertens_adult_mortality.rds"</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>cleaned_hypertens_mortailty_adult <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(cleaned_hypertension_adult_mortality_location)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="check-data" class="level1">
 <h1>Check data</h1>
-<p>First we can look at the codebook</p>
+<p>We check the data again.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>codebook <span class="ot">&lt;-</span> readxl<span class="sc">::</span><span class="fu">read_excel</span>(data_location, <span class="at">sheet =</span><span class="st">"Codebook"</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(codebook)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">glimpse</span>(cleaned_hypertens_mortailty_adult)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 3 × 3
-  `Variable Name` `Variable Definition`                 `Allowed Values`      
-  &lt;chr&gt;           &lt;chr&gt;                                 &lt;chr&gt;                 
-1 Height          height in centimeters                 numeric value &gt;0 or NA
-2 Weight          weight in kilograms                   numeric value &gt;0 or NA
-3 Gender          identified gender (male/female/other) M/F/O/NA              </code></pre>
+<pre><code>Rows: 1,103,872
+Columns: 14
+$ LocationID            &lt;chr&gt; "01001", "01001", "01001", "01001", "01001", "01…
+$ Year                  &lt;chr&gt; "2000", "2001", "2002", "2003", "2004", "2005", …
+$ LocationAbbr          &lt;chr&gt; "AL", "AL", "AL", "AL", "AL", "AL", "AL", "AL", …
+$ LocationDesc          &lt;chr&gt; "Autauga", "Autauga", "Autauga", "Autauga", "Aut…
+$ mortalities           &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ Data_Value_Unit       &lt;chr&gt; "per 100,000", "per 100,000", "per 100,000", "pe…
+$ Data_Value_Type       &lt;chr&gt; "Age-Standardized, Spatiotemporally Smoothed Rat…
+$ Confidence_limit_Low  &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ Confidence_limit_High &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ age_group             &lt;chr&gt; "Ages 35-64 years", "Ages 35-64 years", "Ages 35…
+$ race_ethnicity        &lt;chr&gt; "American Indian and Alaska Native", "American I…
+$ sex                   &lt;chr&gt; "Overall", "Overall", "Overall", "Overall", "Ove…
+$ X_long                &lt;dbl&gt; -86.64296, -86.64296, -86.64296, -86.64296, -86.…
+$ Y_lat                 &lt;dbl&gt; 32.53531, 32.53531, 32.53531, 32.53531, 32.53531…</code></pre>
 </div>
-</div>
-<p>Several ways of looking at the data</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">glimpse</span>(rawdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(cleaned_hypertens_mortailty_adult)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Rows: 14
-Columns: 3
-$ Height &lt;chr&gt; "180", "175", "sixty", "178", "192", "6", "156", "166", "155", …
-$ Weight &lt;dbl&gt; 80, 70, 60, 76, 90, 55, 90, 110, 54, 7000, NA, 45, 55, 50
-$ Gender &lt;chr&gt; "M", "O", "F", "F", "NA", "F", "O", "M", "N", "M", "F", "F", "M…</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(rawdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>    Height              Weight          Gender         
- Length:14          Min.   :  45.0   Length:14         
- Class :character   1st Qu.:  55.0   Class :character  
- Mode  :character   Median :  70.0   Mode  :character  
-                    Mean   : 602.7                     
-                    3rd Qu.:  90.0                     
-                    Max.   :7000.0                     
-                    NA's   :1                          </code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rawdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 3
-  Height Weight Gender
-  &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt; 
-1 180        80 M     
-2 175        70 O     
-3 sixty      60 F     
-4 178        76 F     
-5 192        90 NA    
-6 6          55 F     </code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(rawdata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<table class="table table-sm table-striped small">
-<caption>Data summary</caption>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Name</td>
-<td style="text-align: left;">rawdata</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">14</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">_______________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Column type frequency:</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">character</td>
-<td style="text-align: left;">2</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">numeric</td>
-<td style="text-align: left;">1</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">________________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Group variables</td>
-<td style="text-align: left;">None</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: character</strong></p>
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 19%">
-<col style="width: 13%">
-<col style="width: 19%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 8%">
-<col style="width: 12%">
-<col style="width: 15%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">min</th>
-<th style="text-align: right;">max</th>
-<th style="text-align: right;">empty</th>
-<th style="text-align: right;">n_unique</th>
-<th style="text-align: right;">whitespace</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Height</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Gender</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">0</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 17%">
-<col style="width: 12%">
-<col style="width: 17%">
-<col style="width: 8%">
-<col style="width: 10%">
-<col style="width: 3%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 6%">
-<col style="width: 7%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">mean</th>
-<th style="text-align: right;">sd</th>
-<th style="text-align: right;">p0</th>
-<th style="text-align: right;">p25</th>
-<th style="text-align: right;">p50</th>
-<th style="text-align: right;">p75</th>
-<th style="text-align: right;">p100</th>
-<th style="text-align: left;">hist</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Weight</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.93</td>
-<td style="text-align: right;">602.69</td>
-<td style="text-align: right;">1922.25</td>
-<td style="text-align: right;">45</td>
-<td style="text-align: right;">55</td>
-<td style="text-align: right;">70</td>
-<td style="text-align: right;">90</td>
-<td style="text-align: right;">7000</td>
-<td style="text-align: left;">▇▁▁▁▁</td>
-</tr>
-</tbody>
-</table>
+<pre><code>  LocationID            Year           LocationAbbr       LocationDesc      
+ Length:1103872     Length:1103872     Length:1103872     Length:1103872    
+ Class :character   Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+                                                                            
+                                                                            
+                                                                            
+                                                                            
+  mortalities     Data_Value_Unit    Data_Value_Type    Confidence_limit_Low
+ Min.   : -94.8   Length:1103872     Length:1103872     Min.   : -95.7      
+ 1st Qu.:  27.0   Class :character   Class :character   1st Qu.:  19.3      
+ Median :  75.8   Mode  :character   Mode  :character   Median :  56.6      
+ Mean   : 203.7                                         Mean   : 164.8      
+ 3rd Qu.: 360.4                                         3rd Qu.: 295.6      
+ Max.   :2857.9                                         Max.   :2374.4      
+ NA's   :531300                                         NA's   :531300      
+ Confidence_limit_High  age_group         race_ethnicity         sex           
+ Min.   : -93.7        Length:1103872     Length:1103872     Length:1103872    
+ 1st Qu.:  37.5        Class :character   Class :character   Class :character  
+ Median : 105.7        Mode  :character   Mode  :character   Mode  :character  
+ Mean   : 252.1                                                                
+ 3rd Qu.: 437.9                                                                
+ Max.   :3414.0                                                                
+ NA's   :531300                                                                
+     X_long            Y_lat      
+ Min.   :-124.16   Min.   :20.99  
+ 1st Qu.: -98.21   1st Qu.:34.55  
+ Median : -90.37   Median :38.29  
+ Mean   : -91.85   Mean   :38.17  
+ 3rd Qu.: -83.43   3rd Qu.:41.68  
+ Max.   : -67.63   Max.   :48.83  
+                                  </code></pre>
 </div>
 </div>
 </section>
 <section id="cleaning" class="level1">
 <h1>Cleaning</h1>
-<p>By inspecting the data as done above, we find some problems that need addressing:</p>
-<p>First, there is an entry for height which says “sixty” instead of a number. Does that mean it should be a numeric 60? It somehow doesn’t make sense since the weight is 60kg, which can’t happen for a 60cm person (a baby). Since we don’t know how to fix this, we might decide to remove the person. This “sixty” entry also turned all Height entries into characters instead of numeric. That conversion to character also means that our summary function isn’t very meaningful. So let’s fix that first.</p>
+<p>From our summary we can see that there are still a lot of NA values in our dataset. We want to look at these more closely to see if there is any valuable information in these rows or if we should just remove them.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>d1 <span class="ot">&lt;-</span> rawdata <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>( Height <span class="sc">!=</span> <span class="st">"sixty"</span> ) <span class="sc">%&gt;%</span> </span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">Height =</span> <span class="fu">as.numeric</span>(Height))</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(d1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Use filter function to search for rows with NA values in the mortalities column.</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>NA_Data <span class="ot">&lt;-</span> cleaned_hypertens_mortailty_adult <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="fu">is.na</span>(mortalities))</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Checking these NA values</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(NA_Data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  LocationID            Year           LocationAbbr       LocationDesc      
+ Length:531300      Length:531300      Length:531300      Length:531300     
+ Class :character   Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+                                                                            
+                                                                            
+                                                                            
+                                                                            
+  mortalities     Data_Value_Unit    Data_Value_Type    Confidence_limit_Low
+ Min.   : NA      Length:531300      Length:531300      Min.   : NA         
+ 1st Qu.: NA      Class :character   Class :character   1st Qu.: NA         
+ Median : NA      Mode  :character   Mode  :character   Median : NA         
+ Mean   :NaN                                            Mean   :NaN         
+ 3rd Qu.: NA                                            3rd Qu.: NA         
+ Max.   : NA                                            Max.   : NA         
+ NA's   :531300                                         NA's   :531300      
+ Confidence_limit_High  age_group         race_ethnicity         sex           
+ Min.   : NA           Length:531300      Length:531300      Length:531300     
+ 1st Qu.: NA           Class :character   Class :character   Class :character  
+ Median : NA           Mode  :character   Mode  :character   Mode  :character  
+ Mean   :NaN                                                                   
+ 3rd Qu.: NA                                                                   
+ Max.   : NA                                                                   
+ NA's   :531300                                                                
+     X_long            Y_lat      
+ Min.   :-124.16   Min.   :20.99  
+ 1st Qu.: -99.75   1st Qu.:35.06  
+ Median : -91.85   Median :38.65  
+ Mean   : -92.84   Mean   :38.58  
+ 3rd Qu.: -84.30   3rd Qu.:42.28  
+ Max.   : -67.63   Max.   :48.83  
+                                  </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(NA_Data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 531,300 × 14
+   LocationID Year  LocationAbbr LocationDesc mortalities Data_Value_Unit
+   &lt;chr&gt;      &lt;chr&gt; &lt;chr&gt;        &lt;chr&gt;              &lt;dbl&gt; &lt;chr&gt;          
+ 1 01001      2000  AL           Autauga               NA per 100,000    
+ 2 01001      2001  AL           Autauga               NA per 100,000    
+ 3 01001      2002  AL           Autauga               NA per 100,000    
+ 4 01001      2003  AL           Autauga               NA per 100,000    
+ 5 01001      2004  AL           Autauga               NA per 100,000    
+ 6 01001      2005  AL           Autauga               NA per 100,000    
+ 7 01001      2006  AL           Autauga               NA per 100,000    
+ 8 01001      2007  AL           Autauga               NA per 100,000    
+ 9 01001      2008  AL           Autauga               NA per 100,000    
+10 01001      2009  AL           Autauga               NA per 100,000    
+# ℹ 531,290 more rows
+# ℹ 8 more variables: Data_Value_Type &lt;chr&gt;, Confidence_limit_Low &lt;dbl&gt;,
+#   Confidence_limit_High &lt;dbl&gt;, age_group &lt;chr&gt;, race_ethnicity &lt;chr&gt;,
+#   sex &lt;chr&gt;, X_long &lt;dbl&gt;, Y_lat &lt;dbl&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">View</span>(NA_Data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>There do not seem to be any data values attached to these NA values. So we will remove them and create a new dataset without them.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Once again using the filter function to leave us the dataframe without NA values</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>hypertens_adult_filtered <span class="ot">&lt;-</span> cleaned_hypertens_mortailty_adult <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(mortalities))</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(hypertens_adult_filtered)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  LocationID            Year           LocationAbbr       LocationDesc      
+ Length:572572      Length:572572      Length:572572      Length:572572     
+ Class :character   Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+                                                                            
+                                                                            
+                                                                            
+  mortalities     Data_Value_Unit    Data_Value_Type    Confidence_limit_Low
+ Min.   : -94.8   Length:572572      Length:572572      Min.   : -95.7      
+ 1st Qu.:  27.0   Class :character   Class :character   1st Qu.:  19.3      
+ Median :  75.8   Mode  :character   Mode  :character   Median :  56.6      
+ Mean   : 203.7                                         Mean   : 164.8      
+ 3rd Qu.: 360.4                                         3rd Qu.: 295.6      
+ Max.   :2857.9                                         Max.   :2374.4      
+ Confidence_limit_High  age_group         race_ethnicity         sex           
+ Min.   : -93.7        Length:572572      Length:572572      Length:572572     
+ 1st Qu.:  37.5        Class :character   Class :character   Class :character  
+ Median : 105.7        Mode  :character   Mode  :character   Mode  :character  
+ Mean   : 252.1                                                                
+ 3rd Qu.: 437.9                                                                
+ Max.   :3414.0                                                                
+     X_long            Y_lat      
+ Min.   :-124.16   Min.   :23.75  
+ 1st Qu.: -96.75   1st Qu.:34.14  
+ Median : -89.03   Median :37.88  
+ Mean   : -90.92   Mean   :37.79  
+ 3rd Qu.: -82.54   3rd Qu.:41.27  
+ Max.   : -67.63   Max.   :48.83  </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(hypertens_adult_filtered)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<table class="table table-sm table-striped small">
+<table class="caption-top table table-sm table-striped small">
 <caption>Data summary</caption>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Name</td>
-<td style="text-align: left;">d1</td>
+<td style="text-align: left;">hypertens_adult_filtered</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">13</td>
+<td style="text-align: left;">572572</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">3</td>
+<td style="text-align: left;">14</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -375,11 +359,11 @@ $ Gender &lt;chr&gt; "M", "O", "F", "F", "NA", "F", "O", "M", "N", "M", "F", "F"
 </tr>
 <tr class="even">
 <td style="text-align: left;">character</td>
-<td style="text-align: left;">1</td>
+<td style="text-align: left;">9</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">numeric</td>
-<td style="text-align: left;">2</td>
+<td style="text-align: left;">5</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">________________________</td>
@@ -392,16 +376,16 @@ $ Gender &lt;chr&gt; "M", "O", "F", "F", "NA", "F", "O", "M", "N", "M", "F", "F"
 </tbody>
 </table>
 <p><strong>Variable type: character</strong></p>
-<table class="table table-sm table-striped small">
+<table class="caption-top table table-sm table-striped small">
 <colgroup>
-<col style="width: 19%">
+<col style="width: 21%">
 <col style="width: 13%">
-<col style="width: 19%">
+<col style="width: 18%">
 <col style="width: 5%">
 <col style="width: 5%">
 <col style="width: 8%">
 <col style="width: 12%">
-<col style="width: 15%">
+<col style="width: 14%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -417,31 +401,111 @@ $ Gender &lt;chr&gt; "M", "O", "F", "F", "NA", "F", "O", "M", "N", "M", "F", "F"
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Gender</td>
+<td style="text-align: left;">LocationID</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3041</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Year</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">LocationAbbr</td>
+<td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 <td style="text-align: right;">0</td>
+<td style="text-align: right;">51</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">LocationDesc</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">62</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1776</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Data_Value_Unit</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Data_Value_Type</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">age_group</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">race_ethnicity</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">5</td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">sex</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
 <td style="text-align: right;">0</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped small">
+<table class="caption-top table table-sm table-striped small">
 <colgroup>
-<col style="width: 17%">
-<col style="width: 12%">
-<col style="width: 17%">
-<col style="width: 8%">
+<col style="width: 21%">
 <col style="width: 9%">
-<col style="width: 3%">
-<col style="width: 8%">
-<col style="width: 4%">
-<col style="width: 4%">
+<col style="width: 13%">
+<col style="width: 6%">
 <col style="width: 6%">
 <col style="width: 7%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 5%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -460,626 +524,803 @@ $ Gender &lt;chr&gt; "M", "O", "F", "F", "NA", "F", "O", "M", "N", "M", "F", "F"
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Height</td>
+<td style="text-align: left;">mortalities</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">151.62</td>
-<td style="text-align: right;">46.46</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">154.00</td>
-<td style="text-align: right;">165</td>
-<td style="text-align: right;">175</td>
-<td style="text-align: right;">192</td>
-<td style="text-align: left;">▁▁▁▂▇</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">203.72</td>
+<td style="text-align: right;">223.83</td>
+<td style="text-align: right;">-94.80</td>
+<td style="text-align: right;">27.00</td>
+<td style="text-align: right;">75.80</td>
+<td style="text-align: right;">360.40</td>
+<td style="text-align: right;">2857.90</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Weight</td>
+<td style="text-align: left;">Confidence_limit_Low</td>
+<td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">0.92</td>
-<td style="text-align: right;">647.92</td>
-<td style="text-align: right;">2000.48</td>
-<td style="text-align: right;">45</td>
-<td style="text-align: right;">54.75</td>
-<td style="text-align: right;">73</td>
-<td style="text-align: right;">90</td>
-<td style="text-align: right;">7000</td>
+<td style="text-align: right;">164.84</td>
+<td style="text-align: right;">189.52</td>
+<td style="text-align: right;">-95.70</td>
+<td style="text-align: right;">19.30</td>
+<td style="text-align: right;">56.60</td>
+<td style="text-align: right;">295.60</td>
+<td style="text-align: right;">2374.40</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Confidence_limit_High</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">252.14</td>
+<td style="text-align: right;">266.58</td>
+<td style="text-align: right;">-93.70</td>
+<td style="text-align: right;">37.50</td>
+<td style="text-align: right;">105.70</td>
+<td style="text-align: right;">437.90</td>
+<td style="text-align: right;">3414.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">X_long</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-90.92</td>
+<td style="text-align: right;">11.81</td>
+<td style="text-align: right;">-124.16</td>
+<td style="text-align: right;">-96.75</td>
+<td style="text-align: right;">-89.03</td>
+<td style="text-align: right;">-82.54</td>
+<td style="text-align: right;">-67.63</td>
+<td style="text-align: left;">▂▂▆▇▂</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Y_lat</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">37.79</td>
+<td style="text-align: right;">4.81</td>
+<td style="text-align: right;">23.75</td>
+<td style="text-align: right;">34.14</td>
+<td style="text-align: right;">37.88</td>
+<td style="text-align: right;">41.27</td>
+<td style="text-align: right;">48.83</td>
+<td style="text-align: left;">▁▅▇▇▃</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(d1<span class="sc">$</span>Height)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(hypertens_adult_filtered)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 572,572 × 14
+   LocationID Year  LocationAbbr LocationDesc mortalities Data_Value_Unit
+   &lt;chr&gt;      &lt;chr&gt; &lt;chr&gt;        &lt;chr&gt;              &lt;dbl&gt; &lt;chr&gt;          
+ 1 01001      2000  AL           Autauga             76.9 per 100,000    
+ 2 01001      2001  AL           Autauga             83.4 per 100,000    
+ 3 01001      2002  AL           Autauga             86.2 per 100,000    
+ 4 01001      2003  AL           Autauga             81.6 per 100,000    
+ 5 01001      2004  AL           Autauga             84.7 per 100,000    
+ 6 01001      2005  AL           Autauga             94.7 per 100,000    
+ 7 01001      2006  AL           Autauga             99.4 per 100,000    
+ 8 01001      2007  AL           Autauga             80.7 per 100,000    
+ 9 01001      2008  AL           Autauga             76.7 per 100,000    
+10 01001      2009  AL           Autauga             77.9 per 100,000    
+# ℹ 572,562 more rows
+# ℹ 8 more variables: Data_Value_Type &lt;chr&gt;, Confidence_limit_Low &lt;dbl&gt;,
+#   Confidence_limit_High &lt;dbl&gt;, age_group &lt;chr&gt;, race_ethnicity &lt;chr&gt;,
+#   sex &lt;chr&gt;, X_long &lt;dbl&gt;, Y_lat &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>As an additional check we will look for any duplicates in the data:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">duplicated</span>(hypertens_adult_filtered)) <span class="co"># Count duplicates</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+</div>
+<p>We are happy that there are no duplicates in our dataset.</p>
+<p>We see from the summary that time is a character but we want numeric values and not character. We will confirm and convert if it is not numeric. (Lubridate function could have been used if the dates included month and days and time instead of only years. But numeric is simplest in this case.)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(hypertens_adult_filtered<span class="sc">$</span>year) <span class="co"># Check type</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Unknown or uninitialised column: `year`.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code> NULL</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co">#We see that time is a character (we saw this from the summary)</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>hypertens_adult_filtered <span class="ot">&lt;-</span> hypertens_adult_filtered <span class="sc">%&gt;%</span> </span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Year =</span> <span class="fu">as.numeric</span>(Year))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: There was 1 warning in `mutate()`.
+ℹ In argument: `Year = as.numeric(Year)`.
+Caused by warning:
+! NAs introduced by coercion</code></pre>
+</div>
+</div>
+<p>We want a copy of this skimr data for a table for the mauscript. We will make edits of this later in the process.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>skim_summary_hypertens_filtered<span class="ot">&lt;-</span>skimr<span class="sc">::</span><span class="fu">skim</span>(hypertens_adult_filtered)<span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(skim_summary_hypertens_filtered)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 4%">
+<col style="width: 9%">
+<col style="width: 4%">
+<col style="width: 5%">
+<col style="width: 5%">
+<col style="width: 5%">
+<col style="width: 6%">
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 5%">
+<col style="width: 4%">
+<col style="width: 4%">
+<col style="width: 5%">
+<col style="width: 5%">
+<col style="width: 5%">
+<col style="width: 5%">
+<col style="width: 5%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_type</th>
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">character.min</th>
+<th style="text-align: right;">character.max</th>
+<th style="text-align: right;">character.empty</th>
+<th style="text-align: right;">character.n_unique</th>
+<th style="text-align: right;">character.whitespace</th>
+<th style="text-align: right;">numeric.mean</th>
+<th style="text-align: right;">numeric.sd</th>
+<th style="text-align: right;">numeric.p0</th>
+<th style="text-align: right;">numeric.p25</th>
+<th style="text-align: right;">numeric.p50</th>
+<th style="text-align: right;">numeric.p75</th>
+<th style="text-align: right;">numeric.p100</th>
+<th style="text-align: left;">numeric.hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">LocationID</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3041</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">LocationAbbr</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">51</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">LocationDesc</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">62</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1776</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">Data_Value_Unit</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">Data_Value_Type</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">age_group</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">race_ethnicity</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">sex</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">Year</td>
+<td style="text-align: right;">52052</td>
+<td style="text-align: right;">0.9090909</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">2009.5000</td>
+<td style="text-align: right;">5.766287</td>
+<td style="text-align: right;">2000.0000</td>
+<td style="text-align: right;">2004.75000</td>
+<td style="text-align: right;">2009.50000</td>
+<td style="text-align: right;">2014.25000</td>
+<td style="text-align: right;">2019.00000</td>
+<td style="text-align: left;">▇▇▇▇▇</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">mortalities</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">203.7201</td>
+<td style="text-align: right;">223.834163</td>
+<td style="text-align: right;">-94.8000</td>
+<td style="text-align: right;">27.00000</td>
+<td style="text-align: right;">75.80000</td>
+<td style="text-align: right;">360.40000</td>
+<td style="text-align: right;">2857.90000</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">Confidence_limit_Low</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">164.8418</td>
+<td style="text-align: right;">189.516431</td>
+<td style="text-align: right;">-95.7000</td>
+<td style="text-align: right;">19.30000</td>
+<td style="text-align: right;">56.60000</td>
+<td style="text-align: right;">295.60000</td>
+<td style="text-align: right;">2374.40000</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">Confidence_limit_High</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">252.1425</td>
+<td style="text-align: right;">266.580008</td>
+<td style="text-align: right;">-93.7000</td>
+<td style="text-align: right;">37.50000</td>
+<td style="text-align: right;">105.70000</td>
+<td style="text-align: right;">437.90000</td>
+<td style="text-align: right;">3414.00000</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">X_long</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">-90.9198</td>
+<td style="text-align: right;">11.807409</td>
+<td style="text-align: right;">-124.1563</td>
+<td style="text-align: right;">-96.75245</td>
+<td style="text-align: right;">-89.03454</td>
+<td style="text-align: right;">-82.53677</td>
+<td style="text-align: right;">-67.62915</td>
+<td style="text-align: left;">▂▂▆▇▂</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">Y_lat</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.0000000</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">37.7873</td>
+<td style="text-align: right;">4.813002</td>
+<td style="text-align: right;">23.7515</td>
+<td style="text-align: right;">34.13675</td>
+<td style="text-align: right;">37.87732</td>
+<td style="text-align: right;">41.26984</td>
+<td style="text-align: right;">48.82564</td>
+<td style="text-align: left;">▁▅▇▇▃</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(skim_summary_hypertens_filtered, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>, <span class="st">"skim_summary_hypertens_filtered.rds"</span>))</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(skim_summary_hypertens_filtered)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   skim_type         skim_variable n_missing complete_rate character.min
+1  character            LocationID         0     1.0000000             5
+2  character          LocationAbbr         0     1.0000000             2
+3  character          LocationDesc         0     1.0000000             3
+4  character       Data_Value_Unit         0     1.0000000             1
+5  character       Data_Value_Type         0     1.0000000            20
+6  character             age_group         0     1.0000000            14
+7  character        race_ethnicity         0     1.0000000             5
+8  character                   sex         0     1.0000000             4
+9    numeric                  Year     52052     0.9090909            NA
+10   numeric           mortalities         0     1.0000000            NA
+11   numeric  Confidence_limit_Low         0     1.0000000            NA
+12   numeric Confidence_limit_High         0     1.0000000            NA
+13   numeric                X_long         0     1.0000000            NA
+14   numeric                 Y_lat         0     1.0000000            NA
+   character.max character.empty character.n_unique character.whitespace
+1              5               0               3041                    0
+2              2               0                 51                    0
+3             62               0               1776                    0
+4             11               0                  2                    0
+5             48               0                  2                    0
+6             16               0                  2                    0
+7             33               0                  6                    0
+8              7               0                  3                    0
+9             NA              NA                 NA                   NA
+10            NA              NA                 NA                   NA
+11            NA              NA                 NA                   NA
+12            NA              NA                 NA                   NA
+13            NA              NA                 NA                   NA
+14            NA              NA                 NA                   NA
+   numeric.mean numeric.sd numeric.p0 numeric.p25 numeric.p50 numeric.p75
+1            NA         NA         NA          NA          NA          NA
+2            NA         NA         NA          NA          NA          NA
+3            NA         NA         NA          NA          NA          NA
+4            NA         NA         NA          NA          NA          NA
+5            NA         NA         NA          NA          NA          NA
+6            NA         NA         NA          NA          NA          NA
+7            NA         NA         NA          NA          NA          NA
+8            NA         NA         NA          NA          NA          NA
+9     2009.5000   5.766287  2000.0000  2004.75000  2009.50000  2014.25000
+10     203.7201 223.834163   -94.8000    27.00000    75.80000   360.40000
+11     164.8418 189.516431   -95.7000    19.30000    56.60000   295.60000
+12     252.1425 266.580007   -93.7000    37.50000   105.70000   437.90000
+13     -90.9198  11.807409  -124.1563   -96.75245   -89.03454   -82.53677
+14      37.7873   4.813002    23.7515    34.13675    37.87732    41.26984
+   numeric.p100 numeric.hist
+1            NA         &lt;NA&gt;
+2            NA         &lt;NA&gt;
+3            NA         &lt;NA&gt;
+4            NA         &lt;NA&gt;
+5            NA         &lt;NA&gt;
+6            NA         &lt;NA&gt;
+7            NA         &lt;NA&gt;
+8            NA         &lt;NA&gt;
+9    2019.00000        ▇▇▇▇▇
+10   2857.90000        ▇▁▁▁▁
+11   2374.40000        ▇▁▁▁▁
+12   3414.00000        ▇▁▁▁▁
+13    -67.62915        ▂▂▆▇▂
+14     48.82564        ▁▅▇▇▃</code></pre>
+</div>
+</div>
+<p>Our filtered data is now down to 572572 observations (from the initial 1.1 million). We have also removed many of the unnecessary columns (down to 14 from the initial 24).</p>
+<p>Our summaries and the skimr function help to provide a good overview for further evaluation of the data. We can see that our dataset contains a combination of numeric and character data. The numeric data includes the actual incidence rates of the hypertension-related cardiovascular disease death rates, as well as the confidence intervals that were used, and geographic coordinates. Our character data includes the race, sex, age group, location data and the year.</p>
+<p>This character data will be used as predictors of the mortality data as we break down these different variables and look for potential patterns and associations. The primary outcome of interest is the mortality rates but the important potential predictors are the location, year, race/ethnicity, and sex. AGe groups only provide two broad categories, namely 35 to 65 years old and 65 years and older, which is a bit limited but will allow for comparisons between these two groups.</p>
+<p>Our skimr data shows that the mean of the hypertension cardiovascular-diseases mortalities is around 203, with a standard deviation of 223. We want to get an idea on the distribution of this data and will use a histogram for this.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Generate a histogram of the mortality rates</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>mortalities_histogram <span class="ot">&lt;-</span> <span class="fu">hist</span>(hypertens_adult_filtered<span class="sc">$</span>mortalities)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="processingfile-v1_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="processingfile-v1_files/figure-html/histogram%20mortalities-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(mortalities_histogram, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>, <span class="st">"mortalities_histogram.rds"</span>))</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>mortalities_histogram <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>, <span class="st">"mortalities_histogram.rds"</span>))</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the mortalities histogram</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(mortalities_histogram)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$breaks
+ [1] -200    0  200  400  600  800 1000 1200 1400 1600 1800 2000 2200 2400 2600
+[16] 2800 3000
+
+$counts
+ [1]  16319 318984 121520  83793  22897   6333   1850    522    174    101
+[11]     50     13      7      6      1      2
+
+$density
+ [1] 1.425061e-04 2.785536e-03 1.061177e-03 7.317246e-04 1.999487e-04
+ [6] 5.530309e-05 1.615517e-05 4.558379e-06 1.519460e-06 8.819851e-07
+[11] 4.366263e-07 1.135228e-07 6.112768e-08 5.239516e-08 8.732526e-09
+[16] 1.746505e-08
+
+$mids
+ [1] -100  100  300  500  700  900 1100 1300 1500 1700 1900 2100 2300 2500 2700
+[16] 2900
+
+$xname
+[1] "hypertens_adult_filtered$mortalities"
+
+$equidist
+[1] TRUE
+
+attr(,"class")
+[1] "histogram"</code></pre>
+</div>
+</div>
+<p>Our histogram depicts the hypertension-related cardiovasculat disease mortalities in the dataset, showing the number of mortalities and the frequency (count) of sprecific mortality values. The mortality counts are clustered towards the lower end of the scale, with a strong right-skew (long tail to the right/higher values).</p>
+<p>However, I acknowledge an issue in the current structure of the data with different subsets of data together, which makes these summaries limited for understanding trends.</p>
+<p>We will start by removing the total percent change values from the dataset and create a new dataset.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>hypertens_adult_filtered_no_percent <span class="ot">&lt;-</span> hypertens_adult_filtered <span class="sc">%&gt;%</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Data_Value_Type <span class="sc">!=</span> <span class="st">"Total percent change"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will stratify the data based upon: County-level overall trends, stratify by race and sex (together and separately). All of these are based on the dataset with the total percent change removed. We will also create separate dataset with the percent change data from each county. We will not stratify by age group because of how the data is organised, this will not summarise much information or will need further summaries.</p>
+<p>Stratify by country-level overall:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Using the filter function to help us with stratification</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>county_overall <span class="ot">&lt;-</span> hypertens_adult_filtered_no_percent <span class="sc">%&gt;%</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(sex <span class="sc">==</span> <span class="st">"Overall"</span>, race_ethnicity <span class="sc">==</span> <span class="st">"Overall"</span>) <span class="sc">%&gt;%</span> <span class="co"># Keep only total county-level data</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(LocationID, LocationDesc, Year, mortalities, X_long, Y_lat, LocationAbbr, Data_Value_Unit, Data_Value_Type, Confidence_limit_Low, Confidence_limit_High, age_group)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Stratify by race and sex per county (removing totals and where both values are overall):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>county_race_sex <span class="ot">&lt;-</span> hypertens_adult_filtered_no_percent <span class="sc">%&gt;%</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(sex <span class="sc">==</span> <span class="st">"Overall"</span> <span class="sc">&amp;</span> race_ethnicity <span class="sc">==</span> <span class="st">"Overall"</span>)) <span class="sc">%&gt;%</span> <span class="co"># Remove rows where both sex and race are 'Overall'</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(LocationID, Year, LocationAbbr, LocationDesc, mortalities, Data_Value_Unit, Data_Value_Type, Confidence_limit_Low, Confidence_limit_High, age_group, race_ethnicity, sex, X_long, Y_lat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>To allow us to assess each of these alone we will make sex and race have their own stratifications too.</p>
+<p>Stratify by race per county:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>county_race <span class="ot">&lt;-</span> hypertens_adult_filtered_no_percent <span class="sc">%&gt;%</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(race_ethnicity <span class="sc">!=</span> <span class="st">"Overall"</span>) <span class="sc">%&gt;%</span> <span class="co"># Remove total values for race</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(LocationID, Year, LocationAbbr, LocationDesc, mortalities, Data_Value_Unit, Data_Value_Type, Confidence_limit_Low, Confidence_limit_High, age_group, race_ethnicity, X_long, Y_lat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Stratify by sex per county:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>county_sex <span class="ot">&lt;-</span> hypertens_adult_filtered_no_percent <span class="sc">%&gt;%</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(sex <span class="sc">!=</span> <span class="st">"Overall"</span>) <span class="sc">%&gt;%</span> <span class="co"># Remove total values for sex</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(LocationID, Year, LocationAbbr, LocationDesc, mortalities, Data_Value_Unit, Data_Value_Type, Confidence_limit_Low, Confidence_limit_High, age_group, sex, X_long, Y_lat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We create a new dataset where we stratify by percent change per county. (this may also serve as reference since we are removing this from the other stratified datasets):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>percent_change_data <span class="ot">&lt;-</span> hypertens_adult_filtered <span class="sc">%&gt;%</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Data_Value_Type <span class="sc">==</span> <span class="st">"Total percent change"</span>) <span class="sc">%&gt;%</span> <span class="co"># Keep only percent change data</span></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(LocationID, Year, LocationAbbr, LocationDesc, mortalities, Data_Value_Unit, Confidence_limit_Low, Confidence_limit_High, age_group, race_ethnicity, sex, X_long, Y_lat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We are happy that we have improved the cleaning steps of our data and will revisit some summaries after saving the data.</p>
+</section>
+<section id="save-data" class="level1">
+<h1>Save data</h1>
+<p>The cleaned data will be saved as a new RDS file which will go under the processed data. The different datasets will be saved individually and as one collective file.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>save_processed_data_location <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"processed-data"</span>)</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(hypertens_adult_filtered, <span class="at">file =</span> <span class="fu">file.path</span>(save_processed_data_location, <span class="st">"processeddata.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save individual datasets</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(hypertens_adult_filtered_no_percent, <span class="at">file =</span> <span class="fu">file.path</span>(save_processed_data_location, <span class="st">"processeddata_no_percent.rds"</span>))</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(county_overall, <span class="at">file =</span> <span class="fu">file.path</span>(save_processed_data_location, <span class="st">"county_overall.rds"</span>))</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(county_race_sex, <span class="at">file =</span> <span class="fu">file.path</span>(save_processed_data_location, <span class="st">"county_race_sex.rds"</span>))</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(county_race, <span class="at">file =</span> <span class="fu">file.path</span>(save_processed_data_location, <span class="st">"county_race.rds"</span>))</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(county_sex, <span class="at">file =</span> <span class="fu">file.path</span>(save_processed_data_location, <span class="st">"county_sex.rds"</span>))</span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(percent_change_data, <span class="at">file =</span> <span class="fu">file.path</span>(save_processed_data_location, <span class="st">"percent_change_data.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save all datasets in a single RDS file</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>final_processed_data <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">processed_data_no_percent =</span> hypertens_adult_filtered_no_percent,</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">county_overall =</span> county_overall,</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">county_race_sex =</span> county_race_sex,</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">county_race =</span> county_race,</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">county_sex =</span> county_sex,</span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">percent_change_data =</span> percent_change_data</span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(final_processed_data, <span class="at">file =</span> <span class="fu">file.path</span>(save_processed_data_location, <span class="st">"final_processed_data.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Running some EDA and checking summaries of data:</p>
+<p>We are going to make use of loops and creating a list of the different datasets that we created to reduce separate code to run the descriptive statisitics for each dataset. We are not include the percent change dataset in these evaluations.</p>
+<p>Creating this datset list:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>list_datasets <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Full Dataset"</span> <span class="ot">=</span> hypertens_adult_filtered_no_percent,</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"County Race-Sex"</span> <span class="ot">=</span> county_race_sex,</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"County Race"</span> <span class="ot">=</span> county_race,</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"County Sex"</span> <span class="ot">=</span> county_sex,</span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"County Overall"</span> <span class="ot">=</span> county_overall</span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will run the descriptive statistics for each dataset (as a single loop)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop through each dataset and print basic statistics</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>summary_stats <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(<span class="fu">lapply</span>(<span class="fu">names</span>(list_datasets), <span class="cf">function</span>(name) {</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  stats <span class="ot">&lt;-</span> list_datasets[[name]] <span class="sc">%&gt;%</span></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">mean =</span> <span class="fu">mean</span>(mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">median =</span> <span class="fu">median</span>(mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">sd =</span> <span class="fu">sd</span>(mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">min =</span> <span class="fu">min</span>(mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">max =</span> <span class="fu">max</span>(mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>  stats<span class="sc">$</span>Dataset <span class="ot">&lt;-</span> name  <span class="co"># Add dataset name for identification</span></span>
+<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(stats)</span>
+<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>}))</span>
+<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Print summary statistics</span></span>
+<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a>tibble<span class="sc">::</span><span class="fu">as_tibble</span>(summary_stats) <span class="sc">%&gt;%</span> </span>
+<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">relocate</span>(Dataset) <span class="sc">%&gt;%</span> </span>
+<span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 6
+  Dataset          mean median    sd   min   max
+  &lt;chr&gt;           &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 Full Dataset     221.  105.   227.   3.1 2858.
+2 County Race-Sex  220.  101.   229.   3.1 2858.
+3 County Race      213.   87.3  237.   3.1 2858.
+4 County Sex       226.  160.   221.   4   2837 
+5 County Overall   226.  161.   220.   6.4 2746.</code></pre>
+</div>
+</div>
+</section>
+<section id="identify-potential-missing-values-in-each-dataset" class="level1">
+<h1>Identify potential missing values in each dataset</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">### Missing Data Summary:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+### Missing Data Summary:</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lapply</span>(<span class="fu">names</span>(list_datasets), <span class="cf">function</span>(name) {</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  missing_count <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(list_datasets[[name]]))</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(name, <span class="st">"has"</span>, missing_count, <span class="st">"missing values.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Full Dataset has 0 missing values.
+County Race-Sex has 0 missing values.
+County Race has 0 missing values.
+County Sex has 0 missing values.
+County Overall has 0 missing values.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+NULL
+
+[[2]]
+NULL
+
+[[3]]
+NULL
+
+[[4]]
+NULL
+
+[[5]]
+NULL</code></pre>
+</div>
+</div>
+<p>We want to visualise the different datasets:</p>
+<p>We will revisit the histogram with the percent change removed.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the distribution of mortality rates with a histogram</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>revised_mortalities_histogram <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(hypertens_adult_filtered_no_percent, <span class="fu">aes</span>(<span class="at">x =</span> mortalities)) <span class="sc">+</span></span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">20</span>, <span class="at">fill =</span> <span class="st">"blue"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fu">max</span>(hypertens_adult_filtered_no_percent<span class="sc">$</span>mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">by =</span> <span class="dv">200</span>)) <span class="sc">+</span></span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of Mortality Rates"</span>, <span class="at">x =</span> <span class="st">"Mortality Rates"</span>, <span class="at">y =</span> <span class="st">"Count"</span>)</span>
+<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(revised_mortalities_histogram, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>, <span class="st">"revised_mortalities_histogram.rds"</span>))</span>
+<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>revised_mortalities_histogram <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>, <span class="st">"revised_mortalities_histogram.rds"</span>))</span>
+<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the mortalities histogram</span></span>
+<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(revised_mortalities_histogram)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="processingfile-v1_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>Now we see that there is one person with a height of 6. That could be a typo, or someone mistakenly entered their height in feet. Since we unfortunately don’t know, we might need to remove this person, which we’ll do here.</p>
+<p>This is the total dataset and so the data is similar to the previous histogram. There is a strong right skew and long tail. Peak mortalities are below 100, and the total values likely account for the second peak.</p>
+<p>We will use a boxlot to get an overview of the other data:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>d2 <span class="ot">&lt;-</span> d1 <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">mutate</span>( <span class="at">Height =</span> <span class="fu">replace</span>(Height, Height<span class="sc">==</span><span class="st">"6"</span>,<span class="fu">round</span>(<span class="dv">6</span><span class="sc">*</span><span class="fl">30.48</span>,<span class="dv">0</span>)) )</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(d2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare mortality rates across race-sex and sex stratifications</span></span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>boxplot_race_sex <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(county_race_sex, <span class="fu">aes</span>(<span class="at">x =</span> race_ethnicity, <span class="at">y =</span> mortalities, <span class="at">fill =</span> sex)) <span class="sc">+</span></span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Mortality Rates by Race and Sex"</span>, <span class="at">x =</span> <span class="st">"Race/Ethnicity"</span>, <span class="at">y =</span> <span class="st">"Mortality Rate"</span>)</span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(boxplot_race_sex, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>, <span class="st">"boxplot_race_sex.rds"</span>))</span>
+<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>boxplot_sex <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(county_sex, <span class="fu">aes</span>(<span class="at">x =</span> sex, <span class="at">y =</span> mortalities)) <span class="sc">+</span></span>
+<span id="cb63-11"><a href="#cb63-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Mortality Rates by Sex"</span>, <span class="at">x =</span> <span class="st">"Sex"</span>, <span class="at">y =</span> <span class="st">"Mortality Rate"</span>)</span>
+<span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-15"><a href="#cb63-15" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(boxplot_sex, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>, <span class="st">"boxplot_sex.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The box plots provide a good overview of the data nd indicate that there seem to be distinct trends and differences between races. It also shows that there are differences between sexes but these are less marked and distinct than between races. We will ook at this in the statistical analysis.</p>
+<p>We want an idea on any sptial trends in the data. We are using the sf function to plot the mortality data by the latitude and longitude.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert data to spatial format and create a map of mortality rates</span></span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure longitude and latitude values are numeric</span></span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>hypertens_adult_filtered_no_percent <span class="ot">&lt;-</span> hypertens_adult_filtered_no_percent <span class="sc">%&gt;%</span></span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">X_long =</span> <span class="fu">as.numeric</span>(X_long), <span class="at">Y_lat =</span> <span class="fu">as.numeric</span>(Y_lat))</span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to spatial object</span></span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a>sf_data <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(hypertens_adult_filtered_no_percent, <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"X_long"</span>, <span class="st">"Y_lat"</span>), <span class="at">crs =</span> <span class="dv">4326</span>)</span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate a spatial plot of mortality rates</span></span>
+<span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sf_data) <span class="sc">+</span></span>
+<span id="cb64-10"><a href="#cb64-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="fu">aes</span>(<span class="at">color =</span> mortalities)) <span class="sc">+</span></span>
+<span id="cb64-11"><a href="#cb64-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_c</span>() <span class="sc">+</span></span>
+<span id="cb64-12"><a href="#cb64-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb64-13"><a href="#cb64-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Geospatial Distribution of Mortality Rates"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<table class="table table-sm table-striped small">
-<caption>Data summary</caption>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Name</td>
-<td style="text-align: left;">d2</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">13</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">_______________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Column type frequency:</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">character</td>
-<td style="text-align: left;">1</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">numeric</td>
-<td style="text-align: left;">2</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">________________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Group variables</td>
-<td style="text-align: left;">None</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: character</strong></p>
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 19%">
-<col style="width: 13%">
-<col style="width: 19%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 8%">
-<col style="width: 12%">
-<col style="width: 15%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">min</th>
-<th style="text-align: right;">max</th>
-<th style="text-align: right;">empty</th>
-<th style="text-align: right;">n_unique</th>
-<th style="text-align: right;">whitespace</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Gender</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">0</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 16%">
-<col style="width: 12%">
-<col style="width: 16%">
-<col style="width: 8%">
-<col style="width: 9%">
-<col style="width: 4%">
-<col style="width: 8%">
-<col style="width: 4%">
-<col style="width: 4%">
-<col style="width: 6%">
-<col style="width: 7%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">mean</th>
-<th style="text-align: right;">sd</th>
-<th style="text-align: right;">p0</th>
-<th style="text-align: right;">p25</th>
-<th style="text-align: right;">p50</th>
-<th style="text-align: right;">p75</th>
-<th style="text-align: right;">p100</th>
-<th style="text-align: left;">hist</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Height</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">165.23</td>
-<td style="text-align: right;">16.52</td>
-<td style="text-align: right;">133</td>
-<td style="text-align: right;">155.00</td>
-<td style="text-align: right;">166</td>
-<td style="text-align: right;">178</td>
-<td style="text-align: right;">192</td>
-<td style="text-align: left;">▂▇▆▆▃</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Weight</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.92</td>
-<td style="text-align: right;">647.92</td>
-<td style="text-align: right;">2000.48</td>
-<td style="text-align: right;">45</td>
-<td style="text-align: right;">54.75</td>
-<td style="text-align: right;">73</td>
-<td style="text-align: right;">90</td>
-<td style="text-align: right;">7000</td>
-<td style="text-align: left;">▇▁▁▁▁</td>
-</tr>
-</tbody>
-</table>
+<div>
+<figure class="figure">
+<p><img src="processingfile-v1_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
 </div>
-<p>Height values seem ok now.</p>
-<p>Now let’s look at the <code>Weight</code> variable. There is a person with weight of 7000, which is impossible, and one person with missing weight. To be able to analyze the data, we’ll remove those individuals as well.</p>
+</div>
+<p>This is a very nice overview and can help us to evauate the trends further or to work on a more intricate plot. We must remember that we have not separated groups or totals yet.</p>
+<p>We want an overview of any temporal (time based) trends in the data. We will provide a proof of concept using a single county due to the overlap of data that will occur otherwise. The statistical analysis will include further refinements. We are only working with the values where sex and race were both overall to reduce overlap.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>d3 <span class="ot">&lt;-</span> d2 <span class="sc">%&gt;%</span>  dplyr<span class="sc">::</span><span class="fu">filter</span>(Weight <span class="sc">!=</span> <span class="dv">7000</span>) <span class="sc">%&gt;%</span> tidyr<span class="sc">::</span><span class="fu">drop_na</span>()</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(d3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Line plot of mortality rates over time</span></span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Select a single county to illustrate the trend</span></span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>selected_county <span class="ot">&lt;-</span> <span class="st">"13037"</span>  <span class="co"># County Location ID for Calhoun, GA</span></span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>county_subset <span class="ot">&lt;-</span> county_overall <span class="sc">%&gt;%</span> <span class="fu">filter</span>(LocationID <span class="sc">==</span> selected_county)</span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>temporal_trends_single_county <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(county_subset, <span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> mortalities, <span class="at">group =</span> LocationID)) <span class="sc">+</span></span>
+<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">color =</span> <span class="st">"blue"</span>) <span class="sc">+</span></span>
+<span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb65-10"><a href="#cb65-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(<span class="st">"Mortality Rate Trends in Calhoun"</span>), </span>
+<span id="cb65-11"><a href="#cb65-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Year"</span>, <span class="at">y =</span> <span class="st">"Mortality Rate"</span>)</span>
+<span id="cb65-12"><a href="#cb65-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-13"><a href="#cb65-13" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(temporal_trends_single_county)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
+</div>
 <div class="cell-output-display">
-<table class="table table-sm table-striped small">
-<caption>Data summary</caption>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Name</td>
-<td style="text-align: left;">d3</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">11</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">_______________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Column type frequency:</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">character</td>
-<td style="text-align: left;">1</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">numeric</td>
-<td style="text-align: left;">2</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">________________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Group variables</td>
-<td style="text-align: left;">None</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: character</strong></p>
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 19%">
-<col style="width: 13%">
-<col style="width: 19%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 8%">
-<col style="width: 12%">
-<col style="width: 15%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">min</th>
-<th style="text-align: right;">max</th>
-<th style="text-align: right;">empty</th>
-<th style="text-align: right;">n_unique</th>
-<th style="text-align: right;">whitespace</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Gender</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">0</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 17%">
-<col style="width: 12%">
-<col style="width: 17%">
-<col style="width: 8%">
-<col style="width: 7%">
-<col style="width: 5%">
-<col style="width: 7%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 6%">
-<col style="width: 7%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">mean</th>
-<th style="text-align: right;">sd</th>
-<th style="text-align: right;">p0</th>
-<th style="text-align: right;">p25</th>
-<th style="text-align: right;">p50</th>
-<th style="text-align: right;">p75</th>
-<th style="text-align: right;">p100</th>
-<th style="text-align: left;">hist</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Height</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">167.09</td>
-<td style="text-align: right;">16.81</td>
-<td style="text-align: right;">133</td>
-<td style="text-align: right;">155.5</td>
-<td style="text-align: right;">166</td>
-<td style="text-align: right;">179</td>
-<td style="text-align: right;">192</td>
-<td style="text-align: left;">▂▇▅▇▅</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Weight</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">70.45</td>
-<td style="text-align: right;">20.65</td>
-<td style="text-align: right;">45</td>
-<td style="text-align: right;">54.5</td>
-<td style="text-align: right;">70</td>
-<td style="text-align: right;">85</td>
-<td style="text-align: right;">110</td>
-<td style="text-align: left;">▇▂▃▃▂</td>
-</tr>
-</tbody>
-</table>
+<div>
+<figure class="figure">
+<p><img src="processingfile-v1_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
 </div>
-<p>Now checking the <code>Gender</code> variable. Gender should be a categorical/factor variable but is loaded as character. We can fix that with simple base R code to mix things up.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>d3<span class="sc">$</span>Gender <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(d3<span class="sc">$</span>Gender)  </span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(d3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<table class="table table-sm table-striped small">
-<caption>Data summary</caption>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Name</td>
-<td style="text-align: left;">d3</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">11</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">_______________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Column type frequency:</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">factor</td>
-<td style="text-align: left;">1</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">numeric</td>
-<td style="text-align: left;">2</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">________________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Group variables</td>
-<td style="text-align: left;">None</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: factor</strong></p>
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 17%">
-<col style="width: 12%">
-<col style="width: 17%">
-<col style="width: 10%">
-<col style="width: 11%">
-<col style="width: 29%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: left;">ordered</th>
-<th style="text-align: right;">n_unique</th>
-<th style="text-align: left;">top_counts</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Gender</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: left;">M: 4, F: 3, O: 2, N: 1</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 17%">
-<col style="width: 12%">
-<col style="width: 17%">
-<col style="width: 8%">
-<col style="width: 7%">
-<col style="width: 5%">
-<col style="width: 7%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 6%">
-<col style="width: 7%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">mean</th>
-<th style="text-align: right;">sd</th>
-<th style="text-align: right;">p0</th>
-<th style="text-align: right;">p25</th>
-<th style="text-align: right;">p50</th>
-<th style="text-align: right;">p75</th>
-<th style="text-align: right;">p100</th>
-<th style="text-align: left;">hist</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Height</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">167.09</td>
-<td style="text-align: right;">16.81</td>
-<td style="text-align: right;">133</td>
-<td style="text-align: right;">155.5</td>
-<td style="text-align: right;">166</td>
-<td style="text-align: right;">179</td>
-<td style="text-align: right;">192</td>
-<td style="text-align: left;">▂▇▅▇▅</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Weight</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">70.45</td>
-<td style="text-align: right;">20.65</td>
-<td style="text-align: right;">45</td>
-<td style="text-align: right;">54.5</td>
-<td style="text-align: right;">70</td>
-<td style="text-align: right;">85</td>
-<td style="text-align: right;">110</td>
-<td style="text-align: left;">▇▂▃▃▂</td>
-</tr>
-</tbody>
-</table>
 </div>
-</div>
-<p>Now we see that there is another NA, but it’s not <code>NA</code> from R, instead it was loaded as character and is now considered as a category. Well proceed here by removing that individual with that NA entry. Since this keeps an empty category for Gender, I’m also using droplevels() to get rid of it.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>d4 <span class="ot">&lt;-</span> d3 <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>( <span class="sc">!</span>(Gender <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"NA"</span>,<span class="st">"N"</span>)) ) <span class="sc">%&gt;%</span> <span class="fu">droplevels</span>()</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(d4)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<table class="table table-sm table-striped small">
-<caption>Data summary</caption>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Name</td>
-<td style="text-align: left;">d4</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">9</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">_______________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Column type frequency:</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">factor</td>
-<td style="text-align: left;">1</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">numeric</td>
-<td style="text-align: left;">2</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">________________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Group variables</td>
-<td style="text-align: left;">None</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: factor</strong></p>
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 19%">
-<col style="width: 13%">
-<col style="width: 19%">
-<col style="width: 11%">
-<col style="width: 12%">
-<col style="width: 23%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: left;">ordered</th>
-<th style="text-align: right;">n_unique</th>
-<th style="text-align: left;">top_counts</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Gender</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: left;">M: 4, F: 3, O: 2</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Variable type: numeric</strong></p>
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 17%">
-<col style="width: 12%">
-<col style="width: 17%">
-<col style="width: 8%">
-<col style="width: 7%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 6%">
-<col style="width: 7%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">mean</th>
-<th style="text-align: right;">sd</th>
-<th style="text-align: right;">p0</th>
-<th style="text-align: right;">p25</th>
-<th style="text-align: right;">p50</th>
-<th style="text-align: right;">p75</th>
-<th style="text-align: right;">p100</th>
-<th style="text-align: left;">hist</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Height</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">165.67</td>
-<td style="text-align: right;">15.98</td>
-<td style="text-align: right;">133</td>
-<td style="text-align: right;">156</td>
-<td style="text-align: right;">166</td>
-<td style="text-align: right;">178</td>
-<td style="text-align: right;">183</td>
-<td style="text-align: left;">▂▁▃▃▇</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Weight</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">70.11</td>
-<td style="text-align: right;">21.25</td>
-<td style="text-align: right;">45</td>
-<td style="text-align: right;">55</td>
-<td style="text-align: right;">70</td>
-<td style="text-align: right;">80</td>
-<td style="text-align: right;">110</td>
-<td style="text-align: left;">▇▂▃▂▂</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>All done, data is clean now.</p>
-<p>Let’s assign at the end to some final variable, this makes it easier to add further cleaning steps above.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>processeddata <span class="ot">&lt;-</span> d4</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<section id="key-findings-and-next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="key-findings-and-next-steps">Key Findings and Next Steps</h2>
+<ul>
+<li>The distribution of mortality rates is right-skewed, suggesting potential transformations before modeling.</li>
+<li>Mortality rates vary markedly by race and sex, justifying stratified analysis.</li>
+<li>A proof-of-concept temporal trend was created for a single county (Calhoun, GA) using Location ID, ensuring unique selection.</li>
+<li>Temporal trend indicate a general increase the selected county, which should be modeled.</li>
+<li>All processed data has been saved into a single RDS file (<code>final_processed_data.rds</code>) for use in statistical analysis.</li>
+</ul>
 </section>
-<section id="save-data" class="level1">
-<h1>Save data</h1>
-<p>Finally, we save the clean data as RDS file. I suggest you save your processed and cleaned data as RDS or RDA/Rdata files. This preserves coding like factors, characters, numeric, etc. If you save as CSV, that information would get lost. However, CSV is better for sharing with others since it’s plain text. If you do CSV, you might want to write down somewhere what each variable is.</p>
-<p>See here for some suggestions on how to store your processed data: http://www.sthda.com/english/wiki/saving-data-into-r-data-format-rds-and-rdata</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>save_data_location <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>,<span class="st">"processeddata.rds"</span>)</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(processeddata, <span class="at">file =</span> save_data_location)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="notes" class="level1">
-<h1>Notes</h1>
-<p>Removing anyone who had “faulty” or missing data is one approach. It’s often not the best. based on your question and your analysis approach, you might want to do cleaning differently (e.g.&nbsp;keep individuals with some missing information).</p>
 </section>
 
 </main>
@@ -1119,18 +1360,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -1162,7 +1392,45 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
   function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
@@ -1197,7 +1465,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
     });
   }
   const xrefs = window.document.querySelectorAll('a.quarto-xref');
@@ -1245,7 +1517,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       if (window.Quarto?.typesetMath) {
         window.Quarto.typesetMath(note);
       }
-      // TODO in 1.5, we should make sure this works without a callout special case
       if (note.classList.contains("callout")) {
         return note.outerHTML;
       } else {

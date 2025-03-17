@@ -22,12 +22,19 @@ We likely do not need to do much further cleaning as that was done in the other 
 Load needed packages. make sure they are installed.
 
 ```{r}
+#install.packages("sf")
+
 library(readxl) #for loading Excel files (in case we want to include an additional dataset)
 library(dplyr) #for data processing/cleaning
 library(tidyr) #for data processing/cleaning
 library(skimr) #for nice visualization of data 
 library(here) #to set paths
 library(knitr) #for nice tables and data integration
+library(corrplot) #for correlation matrix visualization
+library(sf) #for geospatial analysis
+library(ggpubr) #for advanced visualization tools
+library(ggplot2) #for plots
+
 ```
 
 
@@ -82,6 +89,23 @@ skimr::skim(hypertens_adult_filtered)
 print(hypertens_adult_filtered)
 ```
 
+As an additional check we will look for any duplicates in the data:
+```{r}
+sum(duplicated(hypertens_adult_filtered)) # Count duplicates
+```
+We are happy that there are no duplicates in our dataset.
+
+We see from the summary that time is a character but we want numeric values and not character. We will confirm and convert if it is not numeric. (Lubridate function could have been used if the dates included month and days and time instead of only years. But numeric is simplest in this case.)
+```{r}
+str(hypertens_adult_filtered$year) # Check type
+#We see that time is a character (we saw this from the summary)
+hypertens_adult_filtered <- hypertens_adult_filtered %>% 
+  mutate(Year = as.numeric(Year))
+
+```
+
+
+
 We want a copy of this skimr data for a table for the mauscript. We will make edits of this later in the process.
 
 ```{r}
@@ -110,22 +134,256 @@ We want to get an idea on the distribution of this data and will use a histogram
 #Generate a histogram of the mortality rates
 mortalities_histogram <- hist(hypertens_adult_filtered$mortalities)
 saveRDS(mortalities_histogram, file = here::here("data","processed-data", "mortalities_histogram.rds"))
-plot(mortalities_histogram <- readRDS(here::here("data","processed-data", "mortalities_histogram.rds"))
+mortalities_histogram <- readRDS(here::here("data","processed-data", "mortalities_histogram.rds"))
 # Print the mortalities histogram
-print(mortalities_histogram))
+print(mortalities_histogram)
 ```
 
 
+Our histogram depicts the hypertension-related cardiovasculat disease mortalities in the dataset, showing the number of mortalities and the frequency (count) of sprecific mortality values.
+The mortality counts are clustered towards the lower end of the scale, with a strong right-skew (long tail to the right/higher values). 
 
-We are happy with this for now.
+
+However, I acknowledge an issue in the current structure of the data with different subsets of data together, which makes these summaries limited for understanding trends.
+
+We will start by removing the total percent change values from the dataset and create a new dataset.
+```{r}
+hypertens_adult_filtered_no_percent <- hypertens_adult_filtered %>%
+  filter(Data_Value_Type != "Total percent change")
+```
+
+
+We will stratify the data based upon: County-level overall trends, stratify by race and sex (together and separately). All of these are based on the dataset with the total percent change removed.
+We will also create separate dataset with the percent change data from each county.
+We will not stratify by age group because of how the data is organised, this will not summarise much information or will need further summaries.
+
+Stratify by country-level overall:
+```{r}
+#Using the filter function to help us with stratification
+county_overall <- hypertens_adult_filtered_no_percent %>%
+  filter(sex == "Overall", race_ethnicity == "Overall") %>% # Keep only total county-level data
+  select(LocationID, LocationDesc, Year, mortalities, X_long, Y_lat, LocationAbbr, Data_Value_Unit, Data_Value_Type, Confidence_limit_Low, Confidence_limit_High, age_group)
+
+```
+
+
+Stratify by race and sex per county (removing totals and where both values are overall):
+```{r}
+county_race_sex <- hypertens_adult_filtered_no_percent %>%
+  filter(!(sex == "Overall" & race_ethnicity == "Overall")) %>% # Remove rows where both sex and race are 'Overall'
+select(LocationID, Year, LocationAbbr, LocationDesc, mortalities, Data_Value_Unit, Data_Value_Type, Confidence_limit_Low, Confidence_limit_High, age_group, race_ethnicity, sex, X_long, Y_lat)
+```
+
+
+To allow us to assess each of these alone we will make sex and race have their own stratifications too.
+
+Stratify by race per county:
+```{r}
+county_race <- hypertens_adult_filtered_no_percent %>%
+  filter(race_ethnicity != "Overall") %>% # Remove total values for race
+  select(LocationID, Year, LocationAbbr, LocationDesc, mortalities, Data_Value_Unit, Data_Value_Type, Confidence_limit_Low, Confidence_limit_High, age_group, race_ethnicity, X_long, Y_lat)
+```
+
+
+Stratify by sex per county:
+```{r}
+county_sex <- hypertens_adult_filtered_no_percent %>%
+  filter(sex != "Overall") %>% # Remove total values for sex
+  select(LocationID, Year, LocationAbbr, LocationDesc, mortalities, Data_Value_Unit, Data_Value_Type, Confidence_limit_Low, Confidence_limit_High, age_group, sex, X_long, Y_lat)
+```
+
+
+We create a new dataset where we stratify by percent change per county. (this may also serve as reference since we are removing this from the other stratified datasets):
+```{r}
+percent_change_data <- hypertens_adult_filtered %>%
+  filter(Data_Value_Type == "Total percent change") %>% # Keep only percent change data
+  select(LocationID, Year, LocationAbbr, LocationDesc, mortalities, Data_Value_Unit, Confidence_limit_Low, Confidence_limit_High, age_group, race_ethnicity, sex, X_long, Y_lat)
+```
+
+
+We are happy that we have improved the cleaning steps of our data and will revisit some summaries after saving the data.
+
 
 # Save data 
-The cleaned data will be saved as a new RDS file which will go under the processed data.
+The cleaned data will be saved as a new RDS file which will go under the processed data. 
+The different datasets will be saved individually and as one collective file.
 
 ```{r}
-save_data_location <- here::here("data","processed-data","processeddata.rds")
-saveRDS(hypertens_adult_filtered, file = save_data_location)
+save_processed_data_location <- here::here("data", "processed-data")
+
+saveRDS(hypertens_adult_filtered, file = file.path(save_processed_data_location, "processeddata.rds"))
 ```
+
+```{r}
+# Save individual datasets
+saveRDS(hypertens_adult_filtered_no_percent, file = file.path(save_processed_data_location, "processeddata_no_percent.rds"))
+saveRDS(county_overall, file = file.path(save_processed_data_location, "county_overall.rds"))
+saveRDS(county_race_sex, file = file.path(save_processed_data_location, "county_race_sex.rds"))
+saveRDS(county_race, file = file.path(save_processed_data_location, "county_race.rds"))
+saveRDS(county_sex, file = file.path(save_processed_data_location, "county_sex.rds"))
+saveRDS(percent_change_data, file = file.path(save_processed_data_location, "percent_change_data.rds"))
+```
+
+```{r}
+# Save all datasets in a single RDS file
+final_processed_data <- list(
+  processed_data_no_percent = hypertens_adult_filtered_no_percent,
+  county_overall = county_overall,
+  county_race_sex = county_race_sex,
+  county_race = county_race,
+  county_sex = county_sex,
+  percent_change_data = percent_change_data
+)
+saveRDS(final_processed_data, file = file.path(save_processed_data_location, "final_processed_data.rds"))
+```
+
+Running some EDA and checking summaries of data:
+
+We are going to make use of loops and creating a list of the different datasets that we created to reduce separate code to run the descriptive statisitics for each dataset. We are not include the percent change dataset in these evaluations.
+
+Creating this datset list:
+```{r}
+list_datasets <- list(
+  "Full Dataset" = hypertens_adult_filtered_no_percent,
+  "County Race-Sex" = county_race_sex,
+  "County Race" = county_race,
+  "County Sex" = county_sex,
+  "County Overall" = county_overall
+)
+
+```
+
+We will run the descriptive statistics for each dataset (as a single loop)
+```{r}
+# Loop through each dataset and print basic statistics
+summary_stats <- bind_rows(lapply(names(list_datasets), function(name) {
+  stats <- list_datasets[[name]] %>%
+    summarise(
+      mean = mean(mortalities, na.rm = TRUE),
+      median = median(mortalities, na.rm = TRUE),
+      sd = sd(mortalities, na.rm = TRUE),
+      min = min(mortalities, na.rm = TRUE),
+      max = max(mortalities, na.rm = TRUE)
+    )
+  stats$Dataset <- name  # Add dataset name for identification
+  return(stats)
+}))
+
+# Print summary statistics
+tibble::as_tibble(summary_stats) %>% 
+  relocate(Dataset) %>% 
+  print()
+```
+
+# Identify potential missing values in each dataset
+```{r}
+cat("\n### Missing Data Summary:\n")
+lapply(names(list_datasets), function(name) {
+  missing_count <- sum(is.na(list_datasets[[name]]))
+  cat(name, "has", missing_count, "missing values.\n")
+})
+```
+
+
+We want to visualise the different datasets:
+
+We will revisit the histogram with the percent change removed.
+```{r}
+# Visualize the distribution of mortality rates with a histogram
+revised_mortalities_histogram <- ggplot(hypertens_adult_filtered_no_percent, aes(x = mortalities)) +
+  geom_histogram(binwidth = 20, fill = "blue", alpha = 0.7) +
+  scale_x_continuous(breaks = seq(0, max(hypertens_adult_filtered_no_percent$mortalities, na.rm = TRUE), by = 200)) +
+  theme_minimal() +
+  labs(title = "Distribution of Mortality Rates", x = "Mortality Rates", y = "Count")
+
+
+saveRDS(revised_mortalities_histogram, file = here::here("data","processed-data", "revised_mortalities_histogram.rds"))
+revised_mortalities_histogram <- readRDS(here::here("data","processed-data", "revised_mortalities_histogram.rds"))
+# Print the mortalities histogram
+print(revised_mortalities_histogram)
+```
+
+This is the total dataset and so the data is similar to the previous histogram. There is a strong right skew and long tail. Peak mortalities are below 100, and the total values likely account for the second peak.
+
+
+We will use a boxlot to get an overview of the other data:
+
+```{r}
+# Compare mortality rates across race-sex and sex stratifications
+
+boxplot_race_sex <- ggplot(county_race_sex, aes(x = race_ethnicity, y = mortalities, fill = sex)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Mortality Rates by Race and Sex", x = "Race/Ethnicity", y = "Mortality Rate")
+
+saveRDS(boxplot_race_sex, file = here::here("data","processed-data", "boxplot_race_sex.rds"))
+
+boxplot_sex <- ggplot(county_sex, aes(x = sex, y = mortalities)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Mortality Rates by Sex", x = "Sex", y = "Mortality Rate")
+
+saveRDS(boxplot_sex, file = here::here("data","processed-data", "boxplot_sex.rds"))
+
+```
+
+
+The box plots provide a good overview of the data nd indicate that there seem to be distinct trends and differences between races. It also shows that there are differences between sexes but these are less marked and distinct than between races.
+We will ook at this in the statistical analysis.
+
+
+We want an idea on any sptial trends in the data. We are using the sf function to plot the mortality data by the latitude and longitude.
+```{r}
+# Convert data to spatial format and create a map of mortality rates
+# Ensure longitude and latitude values are numeric
+hypertens_adult_filtered_no_percent <- hypertens_adult_filtered_no_percent %>%
+  mutate(X_long = as.numeric(X_long), Y_lat = as.numeric(Y_lat))
+# Convert to spatial object
+sf_data <- st_as_sf(hypertens_adult_filtered_no_percent, coords = c("X_long", "Y_lat"), crs = 4326)
+
+# Generate a spatial plot of mortality rates
+ggplot(sf_data) +
+  geom_sf(aes(color = mortalities)) +
+  scale_color_viridis_c() +
+  theme_minimal() +
+  labs(title = "Geospatial Distribution of Mortality Rates")
+
+```
+
+This is a very nice overview and can help us to evauate the trends further or to work on a more intricate plot. We must remember that we have not separated groups or totals yet.
+
+
+We want an overview of any temporal (time based) trends in the data. We will provide a proof of concept using a single county due to the overlap of data that will occur otherwise. The statistical analysis will include further refinements. We are only working with the values where sex and race were both overall to reduce overlap.
+```{r}
+# Line plot of mortality rates over time
+# Select a single county to illustrate the trend
+selected_county <- "13037"  # County Location ID for Calhoun, GA
+county_subset <- county_overall %>% filter(LocationID == selected_county)
+
+temporal_trends_single_county <- ggplot(county_subset, aes(x = Year, y = mortalities, group = LocationID)) +
+  geom_line(alpha = 0.6, color = "blue") +
+  geom_smooth(se = FALSE, color = "red") +
+  theme_minimal() +
+  labs(title = paste("Mortality Rate Trends in Calhoun"), 
+       x = "Year", y = "Mortality Rate")
+
+print(temporal_trends_single_county)
+```
+
+
+## Key Findings and Next Steps
+
+- The distribution of mortality rates is right-skewed, suggesting potential transformations before modeling.
+- Mortality rates vary markedly by race and sex, justifying stratified analysis.
+- A proof-of-concept temporal trend was created for a single county (Calhoun, GA) using Location ID, ensuring unique selection.
+- Temporal trend indicate a general increase the selected county, which should be modeled.
+- All processed data has been saved into a single RDS file (`final_processed_data.rds`) for use in statistical analysis.
+
+
+
+
+
+
 
 
 
