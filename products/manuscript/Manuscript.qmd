@@ -116,7 +116,7 @@ document/dataset contained 1103872 observations across 24 variables.
 There were some initial processing steps performed to evaluate and
 delete some of the unnecessary columns and to save this data to a .rds
 document to reduce the size. This was all outlined in the
-"processingcode" document, which will not run automatically because the
+"processingcode" document (and README file), which will not run automatically because the
 Excel (csv) file will not be available due to size concerns.
 
 The intial exploration and cleaning and removal of the redundant columns
