@@ -1,3 +1,3 @@
 # analysis-code
 
-This folder contains  an R script with a bit of a statistical analysis. This is only implemented as an R script, no Quarto version. 
+This folder contains  a quarto document with modeling and statistical analysis. This was done in a quarto document named statistical-analysis-v2 
