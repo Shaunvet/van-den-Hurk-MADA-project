@@ -23,10 +23,7 @@ library(magick)
 
 **Authors**
 
--   First Autor$^{1,2,*}$ (ORCID: 0000-0000-1234-5678)
--   Second Author$^{3, *}$
--   Third Autor$^{3, \dagger}$
--   Last Author$^{1, 2, \land}$
+-   First Author: Shaun van den Hurk$^{1,2,*}$
 
 **Author affiliations**
 
@@ -35,7 +32,7 @@ library(magick)
 
 $*$ These authors contributed equally to this work.
 
-$\land$ Corresponding author: some\@email.com
+$\land$ Corresponding author: shaun.vandenhurk\@uga.edu
 
 $\dagger$ Disclaimer: The opinions expressed in this article are the
 author's own and don't reflect their employer.
@@ -44,18 +41,11 @@ author's own and don't reflect their employer.
 
 # Summary/Abstract
 
-Lifestyle diseases such as cardiovascular disease make up the highest
-causes of death in developed nations such as the United States. This
-project focuses on hypertension-related cardiovascular disease and hopes
-to help provide a greater understandign of the dynamics and patterns
-that may exist with hypertension and cardiovascualr diseased related
-mortality in the United States. The project seeks to evaluate data from
-the CDC on the rates of hypertension-related cardiovascular disease
-mortality and the associated demographic factors for this collected
-data, including county, age group, race/ethnicity, and sex. The data
-represents information collected from 2000 to 2019. This will be used to
-see if there are any potential patterns or correlation between the rate
-of mortality and these other demographic factors within the data.
+Cardiovascular disease (CVD) remains a leading cause of mortality in the United States, with hypertension recognized as a major modifiable contributor. This study investigates patterns and predictors of hypertension-related CVD mortality among U.S. adults aged 35 and older using county-level data from 2000 to 2019. We explored temporal, demographic, and geographic disparities and evaluated the predictive performance of demographic and temporal factors using machine learning models.
+Descriptive analyses revealed persistent and pronounced disparities in mortality across race, sex, and age groups. Black and American Indian/Alaska Native populations experienced the highest mortality rates, particularly among adults aged 65 and older. Temporal modeling showed diverging trends across subgroups, with Black adults seeing the steepest declines, while mortality increased among males and American Indian/Alaska Native populations. Spatial clustering analyses identified modest but statistically significant autocorrelation, with localized high-mortality clusters in the Southeastern U.S.
+Finally, predictive modeling using Random Forest and LASSO regression demonstrated that demographic and temporal variables could explain a substantial proportion of county-level variation in mortality. The Random Forest model achieved an R² of 0.748 and identified race/ethnicity and year as the most influential predictors. These findings highlight the enduring influence of demographic and geographic factors on cardiovascular health outcomes and support the use of predictive models to inform future public health strategies.
+
+
 
 {{< pagebreak >}}
 
@@ -63,44 +53,99 @@ of mortality and these other demographic factors within the data.
 
 ## General Background Information
 
-Lifestyle diseases such as cardiovascular disease make up the highest
-causes of death in developed nations such as the United States. This
-data analysis hopes to evaluate the rates of hypertension-related
-cardiovascular disease mortality in adults in the United States and
-trends that might be associated with demographic and geographic factors.
+Lifestyle diseases such as cardiovascular disease (CVD) represent some
+of the most significant causes of death globally, both in low-income
+regions and high-income countries such as the United States of America
+(USA). Cardiovascular diseases are a broad umbrella term including
+different clinical manifestations such as hypertension, stroke, and
+ischemic heart disease. Cardiovascular diseases were cited as the
+leading cause of death globally in 2022 (..1..), in the USA they were
+responsible for one in every five deaths nationally (...2.).
+Hypertension is commonly identified as a significant risk factor for
+multiple cardiovascular conditions, and one that is modifiable, and thus
+represents a good metric for potential public health interventions
+(...3.). However, not all demographics appear to be equally affected by
+hypertension and CVD, with differences in rates of CVD and hypertension
+in people from different races, sexes, age groups, geographic location,
+income levels, and other groups in previous studies (..4..). A deeper
+understanding of these factors helps us to get a deeper understanding of
+the multifactorial nature of CVD and also helps guide effective public
+health interventions. Additionally, it is important to understand if
+there have been any differences in these rates of CVD and hypertension
+over time, and if there are particular geographic hotspots. This is
+essential as it allows public health officials to measure the impact of
+previous intervention strategies and to ensure that resources
+strategically target areas of concern.
 
 ## Description of data and data source
 
 The dataset was collected from the CDC website and the information was
-sourced from the National Vital Statistics System. The dataset contains
-rates and trends in the hypertension-related cardiovascular disease
-(CVD) death rates. The study period is from 2000 to 2019, with two main
-intervals displayed in the data 2000-2009, and 2010-2019. The data is
-further distributed by county, age group (36-64 years and 65 years and
-older), race/ethnicity, and sex.
+sourced from the National Vital Statistics System (..5...). The dataset
+contains rates and trends in the hypertension-related cardiovascular
+disease (CVD) death rates. The study period is from 2000 to 2019, with
+two main intervals displayed in the data 2000-2009, and 2010-2019. The
+data is further distributed by county, age group (35-64 years and 65
+years and older), race/ethnicity, and sex.
+
+(1= )
+
+(2= Virani SS, et al. Heart Disease and Stroke Statistics—2020 Update: A
+Report From the American Heart Association. *Circulation*.
+2020;141:e139–e596.)
+
+(3= Whelton PK, et al. 2017 ACC/AHA Guideline for the Prevention,
+Detection, Evaluation, and Management of High Blood Pressure in Adults.
+*Hypertension*. 2018;71:e13–e115)
+
+(Mahmood SS, et al. The Framingham Heart Study and the epidemiology of
+cardiovascular disease: a historical perspective. *Lancet*.
+2014;383(9921):999–1008.)
+
+(4= Yusuf S, et al. Modifiable risk factors, cardiovascular disease, and
+mortality in 155,722 individuals from 21 high-income, middle-income, and
+low-income countries (PURE): a prospective cohort study. *Lancet*.
+2020;395(10226):795–808.)
+
+(undefined
+
+(5= at the following url:
+https://data.cdc.gov/Heart-Disease-Stroke-Prevention/Rates-and-Trends-in-Hypertension-related-Cardiovas/uc9k-vc2j/about_data.
+)
 
 ## Questions/Hypotheses to be addressed
 
--   Hypertension-related cardiovascular disease mortalities are higher
-    in select demographics (age groups, race/ethnicities and sex), and
-    thus these demographics show correlated with mortalities rates.
+This data analysis aimed to evaluate the rates of hypertension-related
+cardiovascular disease mortality in adults in the United States based on
+county-level data and to identify trends that might be associated with
+demographic and geographic factors. Furthermore, we aim to identify
+factors that can be used in predictive models to estimate mortality
+trends.
 
--   There are clear regional/geographic distributions associated with
-    hypertension-related cardiovascular disease mortalities.
-    
-Study Aims:
-- Aim 1: Assess national temporal trends in hypertension-related CVD mortality, stratified by age group.
-- Aim 2: Identify spatial clustering of county-level mortality.
-- Aim 3: Evaluate disparities in mortality trends by race/ethnicity and sex, stratified by age group.
-- Aim 4: Build predictive models using demographic and geographic features to estimate mortality trends.
-  
-Hypotheses:
-- Mortality trends vary significantly over time and across age groups.
-- County-level mortality exhibits spatial clustering, reflecting geographic disparities.
-- Temporal trends differ significantly across race and sex, with widening inequities over time.
-- Predictive models can identify key demographic and spatial factors associated with higher mortality trends.
+#### Study Aims:
 
-    
+\- Aim 1: Assess national temporal trends in hypertension-related CVD
+mortality, stratified by age group.
+
+\- Aim 2: Identify spatial clustering of county-level mortality.
+
+\- Aim 3: Evaluate disparities in mortality trends by race/ethnicity and
+sex, stratified by age group.
+
+\- Aim 4: Build predictive models using demographic and geographic
+features to estimate mortality trends.
+
+#### Hypotheses:
+
+\- Mortality trends vary significantly over time and across age groups.
+
+\- County-level mortality exhibits spatial clustering, reflecting
+geographic disparities.
+
+\- Temporal trends differ significantly across race and sex, with
+widening inequities over time.
+
+\- Predictive models can identify key demographic and spatial factors
+associated with higher mortality trends.
 
 {{< pagebreak >}}
 
@@ -108,105 +153,49 @@ Hypotheses:
 
 ## Data import and cleaning
 
-This data was downloaded from the CDC online database at the following
-url:
-https://data.cdc.gov/Heart-Disease-Stroke-Prevention/Rates-and-Trends-in-Hypertension-related-Cardiovas/uc9k-vc2j/about_data.
-A csv file was downloaded which was almost 300MB in size. The initial
-document/dataset contained 1103872 observations across 24 variables.
-There were some initial processing steps performed to evaluate and
-delete some of the unnecessary columns and to save this data to a .rds
-document to reduce the size. This was all outlined in the
-"processingcode" document (and README file), which will not run automatically because the
-Excel (csv) file will not be available due to size concerns.
+We obtained the dataset from the CDC’s online portal, sourced from the National Vital Statistics System [5]. The raw CSV file was approximately 300MB in size and contained 1,103,872 rows and 24 columns. Initial preprocessing was conducted in R to remove redundant variables, reduce file size, and prepare the dataset for analysis.There were some initial processing steps performed to evaluate and delete some of the unnecessary columns and to save this data to an RDS
+document to reduce the size. This was all outlined in the "processingcode" document (and README file), which will not run
+automatically because the Excel (csv) file will not be available due to
+size concerns with Github uploads (available on request). This process is fully documented in the processingcode.R and processingfile-v1.qmd files within the project repository.
 
-The intial exploration and cleaning and removal of the redundant columns
-(columns with repeated single values without any additional
-information). Some of the other columns were renamed to have the name of
-the column reflect what these single value columns had contained
-instead. The columns were checked to see what they contained and to see
-how many unique entries there were and based upon this columns were
-deleted and others renamed.
+Non-informative or repetitive columns (e.g., columns with a single repeated value or metadata such as DataSource, Topic, Geographic_Level) were removed. Columns describing demographic stratification were renamed for clarity: Stratification1 was renamed to age_group, Stratification2 to race_ethnicity, and Stratification3 to sex. The primary outcome variable, Data_Value, was renamed mortalities.
 
-Deleted columns were: DataSource, Topic, Class,
-StratificationCategory1/2/3, Data_Value_Footnote,
-Data_Value_Footnote_Symbol, Geographic_Level, TopicID
+All rows with missing values in any of the key variables (mortality rate, year, age group, race/ethnicity, sex, and geographic coordinates) were removed. The resulting cleaned dataset contained 572,572 rows and 14 variables. Summary statistics and exploratory inspection (e.g., using the skimr package) confirmed the data's readiness for analysis. The dataset included both numeric variables (e.g., mortality rates, year, coordinates) and categorical variables (e.g., sex, race/ethnicity, age group, county).
 
-Renamed columns: Stratification1 column to age_group, Stratification2
-column to race_ethnicity, Stratification3 column to sex, Data_Value to
-mortalities.
+Age groups were categorized into two broad strata: 35–64 years and 65 years and older. While this limits deeper evaluation, it facilitates comparisons across the two broad groups and supports stratified modeling approaches. The cleaned dataset was saved in .rds format for improved performance and integration with downstream analysis scripts.
 
-After the initial cleaning the data was evaluated again and some further
-small cleaning and processing steps were performed (code is visible in
-the processingfile-v1.qmd file) to reduce the number of rows by removing
-NA values. The resulting dataframe contains 572572 observations and 14
-variables.
+All cleaning and preprocessing steps are reproducible and are logged in the repository.
 
-Our summaries and the skimr function help to provide a good overview for
-further evaluation of the data. We can see that our dataset contains a
-combination of numeric and character data. The numeric data includes the
-actual incidence rates of the hypertension-related cardiovascular
-disease death rates, as well as the confidence intervals that were used,
-and geographic coordinates. Our character data includes the race, sex,
-age group, location data and the year.
 
-This character data will be used as predictors of the mortality data as
-we break down these different variables and look for potential patterns
-and associations. The primary outcome of interest is the mortality rates
-but the important potential predictors are the location, year,
-race/ethnicity, and sex. AGe groups only provide two broad categories,
-namely 35 to 65 years old and 65 years and older, which is a bit limited
-but will allow for comparisons between these two groups.
+## Statistical Analysis
 
-Aim 1: We assessed national temporal trends in hypertension-related
-cardiovascular disease (CVD) mortality from 2000 to 2019 using a series
-of regression models. First, a linear regression model was fit to assess
-the overall relationship between mortality rates and year. Next,
-generalized linear models (GLMs) were used to evaluate time trends
-stratified by race/ethnicity, sex, and age group. Interaction terms
-(e.g., Year × race/ethnicity) were included to test for differential
-trends across subgroups. Estimated annual changes in mortality rates
-were compared across age groups using the emtrends and contrast
-functions from the emmeans package.
+Statistical analysis was structured according to the study’s four primary aims and was conducted using R (version 4.3.1). All code is available in the project repository within the statistical-analysis-v2-slim.qmd script. Analyses incorporated regression modeling, spatial statistics, and supervised machine learning to assess temporal trends, demographic disparities, spatial clustering, and predictive performance.
 
-Spatial Patterns of Mortality Aim 2: Spatial clustering analysis:
-County-level mortality data were converted to spatial features using
-geographic coordinates. Global and Local Moran’s I statistics were used
-to assess spatial autocorrelation. Spatial weights were generated using
-5-nearest-neighbor methods. Local clustering was visualized using
-standardized mortality z-scores and LISA cluster classifications.
+To evaluate national temporal trends in hypertension-related cardiovascular disease (CVD) mortality from 2000 to 2019 (Aim 1), we began by fitting a linear regression model to estimate the overall change in mortality over time. We then used generalized linear models (GLMs) to assess stratified time trends by race/ethnicity, sex, and age group. Interaction terms such as Year × race/ethnicity and Year × age group were included to evaluate whether trends varied between subgroups. We estimated annual mortality slopes for each demographic category using the emtrends() function from the emmeans package and conducted pairwise comparisons using the contrast() function to formally test for differences between groups.
 
-Evaluating National Demographic Disparities Aim 3: We fit generalized
-linear models (GLMs) with interaction terms to estimate yearly changes
-in hypertension-related CVD mortality rates from 2000–2019 across
-demographic groups. Using emtrends() from the emmeans package, we
-extracted slope estimates by race/ethnicity and sex, stratified by age
-group (35–64 and 65+). Pairwise contrasts were conducted to evaluate
-statistically significant differences in trends between groups.
+For spatial analysis (Aim 2), we examined county-level clustering of mortality rates using spatial statistics. County geometries were created by converting longitude and latitude coordinates into spatial features using the sf package. Spatial weights were computed using 5-nearest-neighbor relationships. Global spatial autocorrelation was assessed using Moran’s I statistic. Local clustering patterns were evaluated using Local Indicators of Spatial Association (LISA) via the spdep package. Local spatial relationships were visualized using standardized mortality z-scores and classified into high–high, low–low, or spatial outlier clusters based on the combination of mortality values and neighboring spatial lags.
 
-Statistical Modeling (Aim 4) To predict county-level
-hypertension-related cardiovascular disease (CVD) mortality, we trained
-two supervised machine learning models: a random forest and a LASSO
-regression. Models were trained on 80% of the data, with the remaining
-20% held out for testing. Ten-fold cross-validation was used within the
-training set for hyperparameter tuning. Predictors included year, age
-group, race/ethnicity, and sex. The modeling dataset included demographic predictors (age group, race/ethnicity, sex) and time (year). Since several predictors were categorical, we applied dummy encoding (one-hot encoding) using step_dummy() within the recipes framework to convert these factors into binary indicator variables. We also normalized numeric predictors and removed any zero-variance predictors. Models were trained using a stratified 80/20 train/test split and evaluated using 10-fold cross-validation on the training set.
-Random forest hyperparameters were selected from a regular grid of mtry and
-min_n values, while LASSO regression used a log-scaled penalty grid.
-Final model performance was evaluated using RMSE, MAE, and R² on the
-test set. Confidence intervals were not computed for these metrics to
-avoid additional computational burden.
+To evaluate demographic disparities in temporal trends (Aim 3), we extended the GLMs used in Aim 1 by including three-way interactions between year, race/ethnicity, and sex, and stratified analyses by age group. Estimated marginal trends were obtained separately for adults aged 35–64 and those aged 65 and older. Annual slope estimates and their confidence intervals were extracted and compared across race–sex combinations. Pairwise comparisons of slopes were again conducted using emmeans, with the goal of quantifying and visualizing disparities in mortality trends across key demographic intersections.
 
-## Statistical analysis
+In the final aim (Aim 4), we developed predictive models to estimate county-level mortality rates using demographic and temporal features. Two modeling approaches were implemented: a random forest model using the ranger engine and a LASSO regression model using the glmnet engine. The modeling dataset included year, age group, race/ethnicity, and sex as predictors. Categorical variables were dummy-encoded using the recipes package, and numeric predictors were normalized; zero-variance predictors were removed prior to modeling. Data were split into training (80%) and test (20%) sets, stratified by mortality outcome. Within the training set, 10-fold cross-validation was used to tune model hyperparameters. For random forests, tuning was performed over a regular grid of mtry and min_n values. LASSO regression was tuned using a log-scaled penalty grid to identify optimal shrinkage parameters. Final model performance was evaluated on the test set using RMSE (root mean squared error), MAE (mean absolute error), and R² (coefficient of determination). Confidence intervals for these metrics were not computed due to computational constraints. Model interpretability was further assessed using variable importance plots for the random forest model and non-zero coefficient selection in LASSO.
+
+This multi-step analytical framework enabled us to assess trends, identify disparities, detect geographic clustering, and test predictive capacity using a consistent set of demographic and temporal variables across all analytic aims.
+
+
 
 {{< pagebreak >}}
 
 # Results
 
-## Exploratory/Descriptive analysis
+## Descriptive and Exploratory Analysis
+We began by examining overall patterns in hypertension-related cardiovascular disease (CVD) mortality among U.S. adults aged 35 and older from 2000 to 2019 (Aim 1; Hypothesis 1). Summary statistics revealed large disparities in mortality rates across racial/ethnic and age groups. For adults aged 35–64, Black individuals had the highest mean county-level mortality rate (92.2 per 100,000), followed by American Indian/Alaska Native (46.2), and White (32.9). In the 65+ age group, Black adults again had the highest mean mortality (662.6), with American Indian/Alaska Native (451.9) and White (398.3) also experiencing elevated rates.
 
-We began by exploring patterns in hypertension-related cardiovascular disease (CVD) mortality among U.S. adults aged 35 and older from 2000 to 2019. The EDA included summary statistics, histograms, and boxplots to assess mortality distributions overall and by key demographic subgroups (race/ethnicity, sex, age group). Temporal trends were visualized using line plots stratified by subgroup and geographic region. Spatial variation was explored with choropleth maps displaying county-level mortality rates across time and demographic strata. These descriptive analyses revealed substantial variation in mortality trends over time, with emerging disparities by race, sex, and age group. Additionally, spatial visualizations suggested clustering in certain states, laying the foundation for formal spatial and demographic analyses in later aims. All visualizations and cleaned summary tables were saved for downstream modeling.
+Boxplots of mortality by race/ethnicity and sex (Figures below) confirmed these disparities, showing right-skewed distributions with particularly high upper ranges for Black and American Indian/Alaska Native adults. Males had consistently higher mortality distributions than females across all groups.
 
-```{r}
+Temporal visualizations indicated divergent patterns between subgroups. For example, while some populations experienced declines in mortality rates, others showed upward or stable trends. These descriptive findings supported formal modeling to assess temporal and demographic patterns.
+
+
+```{r, echo=FALSE, message=FALSE}
 mortality_race_boxplot <- image_read(here::here("products", "manuscript", "supplement", "mortality_by_race.png"))
 print(mortality_race_boxplot)
 
@@ -215,34 +204,17 @@ mortality_sex_boxplot <- image_read(here::here("products", "manuscript", "supple
 print(mortality_sex_boxplot)
 ```
 
-
-
-
-
-
 ## Basic statistical analysis
 
-Spatial plots of mortalities per geographic regions were generated for
-each race and compared on one plot. Two generalized linear models were
-evaluated, the first examined how time, race/ethnicity, and sex (plot
-below) influence mortality rates, and the second tested whether the
-effect of time varied by race/ethnicity.
+### Temporal Trends in Mortality 
+At the national level, a linear regression of overall mortality against year showed a small but statistically significant increase in mortality from 2000 to 2019 (slope = 1.40, p < 0.001). However, stratified models revealed considerable variation between groups.
 
-Overall, black individuals had the highest predcted mortality rates from
-the generalized linear models, followed by white and native american
-populations. Black individuals also had the highest hypertension-related
-mortalities on the boxplot follwoed by white individuals. Females
-appeared to have lower mortality rates than males across all races.
+A generalized linear model (GLM) incorporating race/ethnicity and sex predictors (Aim 1.2; Hypotheses 1 and 3) confirmed that Black individuals had the highest predicted mortality rates, followed by White and American Indian/Alaska Native populations. Males had significantly higher predicted rates than females across all racial/ethnic groups.
 
-Race, sex and time all seem to be predictors of mortality. We see
-differences in trends over time for different racial groups.
+An interaction model between year and race (Aim 1.3) revealed statistically significant divergence in trends. Mortality among Black individuals declined sharply over time (slope = –7.06, p < 0.001), while American Indian/Alaska Native (slope = –3.41) and Hispanic populations showed shallower or increasing trends.
 
-Our spatial clustering has revealed geographic clustering of
-high-mortality regions, with high densities in the Eastern regions of
-the country. There also appears to be a higher density of mortalities
-from people in the race/ethnic group Black in certain regions. Asian and
-Pacific Islander groups had relatively lower mortality rates and
-geographic clustering.
+Interaction between year and age group (Aim 1.4) demonstrated that adults aged 65+ experienced a significantly steeper increase in mortality over time compared to those aged 35–64 (interaction slope = +0.22, p < 0.001). Estimated marginal trends (Aim 1.5) further confirmed this: the slope among older adults was 1.26 per year (95% CI: 1.18–1.34), versus 1.04 (95% CI: 0.96–1.12) in the younger group (p = 0.0002).
+
 
 ```{r, echo=FALSE, message=FALSE}
 #Print the glm plot
@@ -250,81 +222,80 @@ glm_interaction_plot <- image_read(here::here("products", "manuscript", "supplem
 print(glm_interaction_plot)
 ```
 
+
+
+### Geographic Distribution and Clustering 
+Spatial visualizations demonstrated considerable geographic variation in mortality by race/ethnicity (Aim 2.1–2.2). Elevated mortality was most prominent among Black individuals, particularly in counties across the Southeast and Midwest. Asian and Pacific Islander populations displayed lower and more geographically diffuse mortality rates.
+
 ```{r, echo=FALSE, message=FALSE}
-#Print the combined spatial plot
 combined_spatial_plot <- image_read(here::here("products", "manuscript", "supplement", "combined_spatial_plot.png"))
 print(combined_spatial_plot)
 ```
 
-## Full analysis
 
-Temporal Trends in Mortality Rates (2000–2019) (Aim 1): From 2000 to
-2019, overall CVD mortality rates showed minimal change at the national
-level. However, stratified models revealed substantial differences
-across subgroups. Black individuals consistently exhibited the highest
-mortality rates, though a declining trend was observed. In contrast,
-rates among American Indian/Alaska Native individuals increased markedly
-over time. Older adults (65+) had significantly higher mortality rates
-and experienced a steeper upward trend compared to adults aged 35–64
-(estimated slope: 1.22 vs. 1.04 deaths per 100,000 per year; p \<
-0.001). These findings highlight persistent disparities and suggest
-diverging subgroup trends in hypertension-related CVD mortality.
+Global spatial clustering was modest but statistically significant for the national dataset (Moran’s I = 0.0435, p < 0.001), with similar low levels of spatial autocorrelation in state-level analyses: Georgia (I = 0.0297), Mississippi (0.0289), Texas (0.0168), and Kentucky (0.0227), all p < 0.001 (Aim 2.3).
 
-Spatial clustering analysis (Aim 2): We evaluated spatial patterns in
-age-adjusted county-level hypertension-related cardiovascular disease
-(CVD) mortality using global and local spatial autocorrelation methods.
-Global spatial autocorrelation of county-level mortality rates was
-statistically significant (Moran’s I = 0.0435, p \< 0.001), indicating a
-weak but non-random spatial clustering pattern across the United States.
-Local Indicators of Spatial Association (LISA) identified significant
-clusters of high and low mortality values. LISA cluster types (e.g.,
-high-high, low-low, spatial outliers) were visualized using
-centroid-based maps for the contiguous U.S. and select states (Georgia,
-Mississippi, Texas, Kentucky). Despite the overall geographic patterns,
-only a small number of statistically significant local clusters were
-detected, suggesting that while some regions exhibit elevated risk,
-strong clustering at the county level may be limited or diffuse.
+Local spatial clustering (Aim 2.4) was visualized using Local Indicators of Spatial Association (LISA). Statistically significant high–high clusters were identified in counties across parts of the Southeast, but the majority of counties showed no local spatial clustering. This suggests that while some mortality hotspots exist, broad demographic and structural drivers likely contribute more to the observed geographic distribution than tightly bounded spatial clusters.
 
-Investigating demographic disparities (Aim 3): Annual changes in
-mortality rates varied substantially across demographic groups. Among
-adults aged 35–64, Black individuals experienced the steepest declines,
-while mortality increased most among males and American Indian/Alaska
-Native populations. Similar patterns were observed among those aged 65+,
-with significant disparities between groups. Pairwise comparisons
-revealed the largest slope differences between Overall Male and Black
-Overall groups, followed by disparities involving American Indian/Alaska
-Native populations. These findings suggest widening inequities in
-hypertension-related CVD mortality trends.
 
-Predictive Modeling of County-Level Mortality (Aim 4) To evaluate the
-predictive capacity of demographic and temporal factors on
-hypertension-related cardiovascular mortality, we compared two machine
-learning models: a random forest and a LASSO regression. Both models
-were trained on 80% of the dataset and evaluated on a held-out 20% test
-set, using cross-validation during tuning to optimize performance.
+### Demographic Disparities in Temporal Trends
+We assessed demographic disparities in mortality trends across race/ethnicity and sex within age groups (Aim 3.1–3.3; Hypothesis 3). Among adults aged 35–64, Black individuals experienced the steepest annual decline in mortality (–3.68), while American Indian/Alaska Native individuals showed the largest increases (+3.38). Overall, males experienced steeper increases than females.
 
-The random forest model demonstrated the strongest performance,
-achieving a Root Mean Squared Error (RMSE) of 115.3, a Mean Absolute
-Error (MAE) of 66.9, and an R² of 0.748 on the test set. In comparison,
-the LASSO regression model yielded an RMSE of 119.6, MAE of 68.1, and R²
-of 0.726. While slightly less accurate, the LASSO model offers valuable
-interpretability by shrinking less important coefficients to zero,
-effectively performing variable selection.
-
-When comparing predicted vs observed plots, both models exhibited a distinct pattern of horizontal banding. This is likely due to the large number of categorical predictors (race, sex, age group) which were dummy-encoded. Many subsets of the population across counties share identical predictor combinations (e.g., "Black females aged 65+ in 2002"), leading to repeated predicted values for those groups. This results in stacked horizontal lines in the prediction plots, especially when using models like LASSO that produce linear fits with limited flexibility, and even in random forests when groupings dominate feature structure.
-
-A comparison of model performance is summarized in Table (...X...).
-These results suggest that both models capture meaningful patterns in
-the data, but the random forest model more accurately predicts mortality
-outcomes. Importantly, the use of interpretable models like LASSO can
-aid in identifying potential risk factors despite modest reductions in
-predictive power.
+Pairwise comparisons showed the greatest differences between Overall Male and Black Overall groups (+7.00 per year), followed by contrasts involving American Indian/Alaska Native, White, and Asian/Pacific Islander groups. These results indicate persistent and widening disparities in mortality trends, particularly among marginalized populations.
 
 ```{r, echo=FALSE, message=FALSE}
-#Print the model performance summary
+readRDS(here::here("results", "tables", "slope_table_agegroup_fmt.rds"))
+readRDS(here::here("results", "tables", "slope_table_race_sex_fmt.rds"))
+```
+
+
+Additional visualizations from Aim 3.4 reinforce these findings:
+
+```{r, echo=FALSE, message=FALSE}
+slope_plot_35_64 <- image_read(here::here("results", "figures", "slope_plot_35_64.png"))
+print(slope_plot_35_64)
+
+slope_plot_65_plus <- image_read(here::here("results", "figures", "slope_plot_65_plus.png"))
+print(slope_plot_65_plus)
+
+```
+
+
+### Predictive Modeling of Mortality Rates 
+
+
+To evaluate the ability of demographic and temporal factors to predict hypertension-related CVD mortality at the county level, we developed and compared two supervised machine learning models: a Random Forest and a LASSO regression model (Aim 4; Hypothesis 4). Both models were trained on 80% of the dataset and evaluated on a held-out 20% test set, with 10-fold cross-validation used during training to optimize hyperparameters and reduce overfitting.
+
+The Random Forest model demonstrated strong predictive accuracy. The best-performing model used all four available predictors (year, age group, race/ethnicity, and sex) with a minimum node size of 15. On the test set, this model achieved a root mean squared error (RMSE) of 115.3, a mean absolute error (MAE) of 66.9, and an R² of 0.748, indicating that approximately 75% of the variance in county-level mortality was explained by the model. Variable importance scores revealed that race/ethnicity and year were the most influential predictors, followed by age group and sex. The predicted versus observed plot showed generally good alignment, though some dispersion at the extremes suggested modest underfitting in counties with very high or low mortality.
+
+```{r, echo=FALSE, message=FALSE}
 model_performance_summary_table <- readRDS(here::here("results", "tables", "model_performance_summary.rds"))
 model_performance_summary_table
+
 ```
+
+```{r, echo=FALSE, message=FALSE}
+rf_pred_plot <- image_read(here::here("results", "figures", "rf_pred_vs_obs.png"))
+print(rf_pred_plot)
+
+rf_vip_plot <- image_read(here::here("results", "figures", "rf_variable_importance.png"))
+print(rf_vip_plot)
+
+```
+
+
+The LASSO regression model provided a more interpretable, though slightly less accurate, alternative. On the same test set, the LASSO model yielded an RMSE of 119.5, an MAE of 70.7, and an R² of 0.726. This model performed coefficient shrinkage and variable selection, shrinking several dummy-coded predictors toward zero. While this feature enhances interpretability and highlights influential variables, it also limits the model’s flexibility to capture complex non-linear patterns. The predicted versus observed plot for the LASSO model revealed horizontal banding patterns. This reflects the impact of dummy-encoded categorical variables — many counties shared identical predictor combinations, resulting in repeated predictions and horizontal clustering in plots. These effects were more pronounced in LASSO than in the Random Forest, which is better able to handle categorical interactions.
+
+
+```{r, echo=FALSE, message=FALSE}
+lasso_pred_plot <- image_read(here::here("results", "figures", "lasso_pred_vs_obs.png"))
+print(lasso_pred_plot)
+
+```
+
+Despite these differences, both models demonstrated solid performance in capturing patterns in the data. The Random Forest provided better predictive accuracy, while the LASSO model offered greater clarity in identifying relevant features. Taken together, these results indicate that demographic and temporal factors are strong predictors of mortality variation at the county level, supporting Hypothesis 4 and offering tools for future public health risk modeling.
+
+
 
 \_
 
@@ -334,18 +305,41 @@ model_performance_summary_table
 
 ## Summary and Interpretation
 
-Aim 3: These results show that hypertension-related CVD mortality trends
-have not improved equally across demographic groups. While some
-populations saw modest or no change, others—particularly Black
-adults—experienced significant declines. Conversely, mortality rates
-rose among males and American Indian/Alaska Native individuals. The
-magnitude and significance of these differences reinforce the need for
-targeted public health efforts to reduce disparities in cardiovascular
-outcomes.
+
+
+We examined patterns and predictors of hypertension-related cardiovascular disease (CVD) mortality among U.S. adults aged 35 and older between 2000 and 2019. Through a combination of exploratory visualization, statistical modeling, spatial clustering, and machine learning, we found consistent evidence of disparities in mortality across time, geography, and demographic subgroups. These findings underscore the ongoing burden of hypertension-related CVD in the United States and highlight areas for targeted intervention.
+
+National trends revealed that overall mortality rates remained relatively stable over the study period. However, stratified models showed considerable variation between groups. Black individuals experienced the highest mortality rates throughout, while American Indian/Alaska Native populations showed a concerning upward trend in recent years. Adults aged 65 and older had significantly steeper increases in mortality rates than younger adults. These findings are consistent with previous national surveillance reports that have identified persistent disparities in CVD burden across racial/ethnic and age groups [2,4].
+
+Spatial analyses detected statistically significant but modest spatial clustering of mortality at the national and state levels. While global Moran’s I statistics confirmed the presence of spatial autocorrelation, the magnitude was small (I = 0.0435 nationally). Local spatial clustering (LISA) identified limited high-mortality hotspots, primarily concentrated in the Southeast. These results suggest that broader structural and demographic factors—rather than localized geographic effects—may be the primary drivers of hypertension-related CVD mortality. This is in line with previous studies indicating that health disparities are often influenced more by social determinants and systemic inequities than by geographic proximity alone [4,6].
+
+Demographic subgroup analyses revealed widening inequities in mortality trends. Among adults aged 35–64, Black individuals experienced the steepest annual declines, suggesting some gains in this group. However, these improvements occurred in parallel with rising mortality among American Indian/Alaska Native individuals and males, who showed the largest annual increases. Among adults aged 65 and older, mortality increased for nearly all groups. These divergent trends highlight the importance of considering intersecting axes of inequality—such as race, sex, and age—in public health surveillance. They also support prior research showing that demographic-specific interventions are necessary to effectively reduce disparities in chronic disease outcomes [3,4,7].
+
+In the predictive modeling component, we assessed whether demographic and temporal variables could accurately predict county-level mortality. The Random Forest model performed best, explaining approximately 75% of the variation in mortality rates (R² = 0.748), with an RMSE of 115.3. Race/ethnicity and year were the most influential predictors. The LASSO regression model, while slightly less accurate (R² = 0.726), offered greater interpretability by selecting a reduced subset of predictors and shrinking non-influential coefficients to zero. These results suggest that relatively simple demographic and temporal features can provide strong predictive power, and that different modeling approaches offer complementary strengths. The Random Forest’s flexibility allowed for more accurate predictions, while LASSO highlighted core factors driving variability.
+
+Notably, both models showed horizontal banding in predicted vs. observed plots—an artifact of dummy-encoded categorical variables and repeated predictor combinations across counties. This highlights a broader methodological challenge in population-level modeling using grouped categorical features. Although machine learning approaches can improve predictive performance, careful attention must be paid to encoding strategies and interpretability.
+
+These findings contribute to a growing body of evidence emphasizing the importance of demographic stratification and predictive modeling in public health research. In particular, our analysis supports previous work demonstrating the utility of ensemble and regularized regression models in epidemiologic prediction tasks [8,9]. Importantly, our results reinforce that even well-known risk factors—such as age, sex, race/ethnicity, and time—continue to explain a large proportion of the variance in hypertension-related CVD mortality and may be sufficient for initial risk stratification at the population level.
 
 ## Strengths and Limitations
+This study benefits from the use of a comprehensive, nationwide dataset covering nearly two decades of mortality records. The integration of statistical and machine learning methods allowed us to not only describe mortality patterns but also assess their predictability. However, several limitations should be noted. First, the analysis was limited to county-level aggregated data, which may obscure within-county heterogeneity and limit causal inference. Second, although we used age-standardized mortality rates, residual confounding by comorbidities, access to care, socioeconomic status, or other contextual factors cannot be excluded. Lastly, while our models achieved high predictive accuracy, they were not designed to support individual-level predictions or establish causal relationships.
+
+## Implications and Future Directions
+Our findings highlight important and persistent disparities in hypertension-related CVD mortality that should inform ongoing public health surveillance and intervention efforts. Geographic clustering, although weak, may still guide resource allocation to high-burden areas. Predictive models developed here can support proactive health planning, particularly when integrated with local surveillance systems. Future research should explore integrating additional variables—such as healthcare access, environmental exposures, and social determinants of health—to further refine predictions and address upstream drivers of CVD disparities.
+
+
+
 
 ## Conclusions
+
+This study provides a comprehensive analysis of hypertension-related cardiovascular disease (CVD) mortality among U.S. adults aged 35 and older from 2000 to 2019, using national county-level data. Our findings reveal that while overall mortality trends remained relatively stable at the national level, significant disparities persist across demographic and geographic groups. Black and American Indian/Alaska Native populations consistently experienced higher mortality rates, with the steepest increases observed among older adults and males. Spatial analysis identified weak but statistically significant clustering, particularly in the Southeastern United States, though most variation was driven by broader structural and demographic patterns rather than tightly localized effects.
+
+Temporal modeling demonstrated that subgroup-specific trends diverged substantially, suggesting that recent gains in cardiovascular health have not been equitably distributed. Our predictive modeling further supports this, with demographic features—particularly race/ethnicity and age—emerging as dominant predictors of county-level mortality risk. Random Forest models outperformed LASSO regression in accuracy, but both approaches reinforced the critical role of social and demographic context in shaping health outcomes.
+
+Taken together, these findings underscore the urgent need for targeted public health strategies that account for longstanding inequities in cardiovascular risk. Future research should integrate social determinants of health, healthcare access, and policy-level factors to better understand the drivers of these disparities and to design interventions that are both equitable and effective.
+
+
+
 
 Note that this cited reference will show up at the end of the document,
 the reference formatting is determined by the CSL file specified in the
