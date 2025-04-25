@@ -1,0 +1,193 @@
+---
+title: "Investigating the incidence and potential risk factors for hypertension-related mortalities in adults in the United States" Review 
+author: Natalie. Cann
+date: April 24, 2025
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+---
+
+# Overview
+
+Title of project: Investigating the incidence and potential risk factors for hypertension-related mortalities in adults in the United States
+
+Name of project author(s): Shaun van den Hurk
+
+Name of project reviewer: Natalie Cann
+
+
+# Instructions
+
+
+# Specific project content evaluation
+Evaluate the different parts of the project by filling in the sections below.
+
+
+## Background, Context and Motivation
+How well is the context of the project described? Is a comprehensive background, including summary of previous/related work given? Is the project well placed into the context of existing work (including proper referencing of existing work). Is it clear why the project was undertaken and what new information it hopes to provide?
+
+### Feedback and Comments
+
+Your background is great! I like how you listed out several diseases that fall under the cardiovascular disease umbrella. 
+
+I really liked how you shared that cardiovascular disease was the global leading cause of death in 2022 - this really conveys the importance of researching cardiovascular disease to the reader. 
+
+Some statements about previous work is included, which is a good start. I think it would be a good idea to add some of the findings from this reference in your background. 
+
+There was some redunancy with wording - take a look at things again at some point before submitting and see if you can add some variation. For example:
+"A deeper understanding of these factors helps us to get a deeper understanding of..." - I would recommend not repeating the phrase "a deeper understanding" twice in this sentence. 
+
+### Summary assessment (PICK ONE, DELETE THE OTHERS)
+* strong contextualization and motivation
+
+
+## Question description
+How well and clear are the question(s)/hypotheses the project aims to address described? Is it clear how the questions relate to the data?
+
+
+### Feedback and Comments
+
+Same here with the abbreviation for USA/U.S. - I think you can just refer to the United States as USA since you introduced it as that previously. I could be wrong though - I was never an expert at english :)
+
+Maybe for aim 4 you could get a bit more specific - I would recommend stating what you're predicting here. Same with the hypothesis for this aim. 
+
+Overall, I really like the way that you structured your aims and then had the hypotheses right below! 
+
+### Summary assessment
+* question/hypotheses somewhat explained
+
+
+## Data description
+How well is the data overall described? Is the source provided? Is a codebook or other meta-information available that makes it clear what the data is? 
+
+### Feedback and Comments
+
+In the second sentence, you have spelled out CVD as "cardiovascular disease" and included its abbreviation in parenthesis. I think since you introduced this abbreviation in your background, you can just use the abbrevation from here on out.
+
+### Summary assessment
+* source and overall structure of data well explained
+
+
+## Data wrangling and exploratory analysis
+How well is the data cleaned/processed and explored? Are all steps reasonable and well explained? Are alternatives discussed and considered? Are meaningful exploratory results shown (e.g. in the supplementary materials)?
+
+### Feedback and Comments   
+
+I was not able to render either of your files (processingcode.R and processingfile-v1.qmd). I see that you included instructions in your readme.md file, which is really helpful. However, when I tried to run the processingfile-v1.qmd file, I ran into issues (data/raw-data/cleaned_hypertens_adult_mortality.rds', probable reason 'No such file or directory') because I couldn't get the cleaned data from the first file. I do not see this file in the raw data folder. 
+
+Your data cleaning looks good - you did a great job of explaining your code! I like how you explained it both above/below code chunks in your qmd file AND within the code chunks using comments (#). I do this too :) 
+
+This section of manuscript looks great - it reads very well!
+
+I also was not able to render the eda.qmd file for a similar reason (/data/processed-data/final_processed_data.rds', probable reason 'No such file or directory') - I don't seen a final_processed_data.rds file in the processed data folder. 
+
+Overall, your eda looks good and was very thorough from what I can see! I really like how you included a small summary section at the end of your file - this is a great idea. 
+
+### Summary assessment
+* essentially no weaknesses in wrangling and exploratory component
+(only weakness I can think of is the reproducibility - but this is assessed in a different part of the review)
+
+
+## Appropriateness of Analysis
+Were the analysis methods appropriate for the data? Was the analysis done properly? Were different components of the analysis (e.g. performance measure, variable selection, data pre-processing, model evaluation) done in the best way possible and explained well?
+
+### Feedback and Comments
+
+I couldn't render the statistical-analysis-v2-slim.qmd file due to the data file not being present (/data/processed-data/eda_outputs.rds', probable reason 'No such file or directory'). 
+
+Your analysis looks good! You did a great job at interpreting things below code chunks. It was so neat how you included code to fill in maps - I've always wondered how people have done this! This is very impressive!
+
+I think you did a great job walking the reader through your analysis in your manuscript!
+
+### Summary assessment
+* strong and reasonable analysis
+
+## Presentation
+How well are results presented? Are tables and figures easy to read and understand? Are the main figures/tables publication level quality? 
+
+### Feedback and Comments
+
+Your graphs look awesome - however, I would make the tables using the gt() package to make them look a bit more profressional. Then, you can save them and add them to your manuscript in the same way you added your graphs. 
+
+### Summary assessment
+* results are presented ok, with room for improvement
+
+
+## Discussion/Conclusions
+Are the study findings properly discussed? Are strengths and limitations acknowledged? Are findings interpreted properly?
+
+### Feedback and Comments
+
+Discussion of results in manuscript is very impressive!! 
+
+Several strengths and limitations are addressed. 
+
+### Summary assessment
+* strong, complete and clear discussion
+
+
+## Further comments
+
+1. Add instructions to your main README file to make it clear in what order the code should be run. For example, processing code > eda code > analysis code > manuscript code > supplementary code
+
+2. Add references in form of citation manager like Zotero (I struggled with this and found that this video helped a lot: https://www.youtube.com/watch?v=zuuOYjE8m98 
+
+
+# Overall project content evaluation
+Evaluate overall features of the project  by filling in the sections below.
+
+
+## Structure
+Is the project well structured? Are files in well labeled folders? Do files have reasonable names? Are all "junk" files not needed for analysis/reproduction removed? By just looking at files and folders, can you get an idea of how things fit together?
+
+### Feedback and Comments
+
+Project is very organized and the readme folders are helpful/appropriate. I would recommend removing the 2020-mckay files from the references folder. 
+
+### Summary assessment
+* well structured
+
+
+## Documentation 
+How well is the project documented? Are you able to understand each step of the whole analysis, each decision that was made, and each line of code? Is enough information provided as comments in code or as part of Rmd files? 
+
+### Feedback and Comments
+
+As explained above, you did a great job explaining your code both in code chunks and above and below your code chunks. 
+
+### Summary assessment
+* fully and well documented
+
+
+
+## Reproducibility
+Are all results fully reproducible? Is documentation provided which clearly explains how to reproduce things, and does it work without the need for any manual intervention? Are you able to re-run the whole analysis without having to do manual interventions/edits?
+
+### Feedback and Comments
+
+I discussed the issues above with reproducibility. The data files appear to be missing. I'm sure once you find a way to add them everything will run smoothly though! 
+
+Or it is entirely possible this is an issue on my end!
+
+### Summary assessment
+* major parts not reproducible 
+
+
+## Thoroughness
+How thorough was the overall study? Were alternatives (e.g. different ways of processing the data or different models) considered? Were alternatives discussed? Were the questions/hypotheses fully and thoroughly addressed?
+
+### Feedback and Comments
+
+Your project was very detailed and interesting! I'm glad I got assigned to review yours. Well done! 
+
+### Summary assessment
+* strong level of thorougness
+
+
+## Further comments
+
+Very impressed with your project and all of the hard work you have put into it! 
+
+The biggest thing that needs work in my opinion is the reproducibility. I have included the errors that R's console was giving me when I tried to run your code. Hopefully this is helpful! 
