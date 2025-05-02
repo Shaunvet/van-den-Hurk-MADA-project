@@ -29,11 +29,13 @@ This is a template for a data analysis project using R, Quarto, Github and a ref
 
 To replicate this analysis, run the scripts within the code folder in the following order:
 
-1 - processing-code/processingfile-v1.qmd
-2 - eda-code/eda.qmd
-3 - analysis-code/statistical-analysis-v2-slim.qmd (Note: This is a large script and will take some time and processing power to run. The script uses loops to load saved data to reduce computation but expect it to take about 15 minutes to run the full script even with those steps.)
+- 1 - processing-code/processingfile-v1.qmd
 
-4 - products/manuscript or supplementary
+- 2 - eda-code/eda.qmd
+
+- 3 - analysis-code/statistical-analysis-v2-slim.qmd (Note: This is a large script and will take some time and processing power to run. The script uses loops to load saved data to reduce computation but expect it to take about 15 minutes to run the full script even with those steps.)
+
+- 4 - products/manuscript or supplementary
 
 
 Note:
