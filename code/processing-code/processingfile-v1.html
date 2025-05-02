@@ -9,7 +9,7 @@
 <meta name="author" content="Shaun van den Hurk">
 <meta name="dcterms.date" content="2025-02-20">
 
-<title>Processing CDC hypertension and CDV Mortality disease data from adults in the USA</title>
+<title>Processing CDC hypertension and CDV Mortality disease data from adults in the USA - Processing script</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -81,7 +81,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Processing CDC hypertension and CDV Mortality disease data from adults in the USA</h1>
+<h1 class="title">Processing CDC hypertension and CDV Mortality disease data from adults in the USA - Processing script</h1>
 </div>
 
 
@@ -1080,7 +1080,7 @@ attr(,"class")
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Using the filter function to help us with stratification</span></span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>county_overall <span class="ot">&lt;-</span> hypertens_adult_filtered_no_percent <span class="sc">%&gt;%</span></span>
 <span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(sex <span class="sc">==</span> <span class="st">"Overall"</span>, race_ethnicity <span class="sc">==</span> <span class="st">"Overall"</span>) <span class="sc">%&gt;%</span> <span class="co"># Keep only total county-level data</span></span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(LocationID, LocationDesc, Year, mortalities, X_long, Y_lat, LocationAbbr, Data_Value_Unit, Data_Value_Type, Confidence_limit_Low, Confidence_limit_High, age_group)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(LocationID,Year,LocationAbbr, LocationDesc,  mortalities, Data_Value_Unit, Data_Value_Type, Confidence_limit_Low, Confidence_limit_High, age_group, X_long, Y_lat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Stratify by race and sex per county (removing totals and where both values are overall):</p>
 <div class="cell">
@@ -1138,187 +1138,13 @@ attr(,"class")
 <span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(final_processed_data, <span class="at">file =</span> <span class="fu">file.path</span>(save_processed_data_location, <span class="st">"final_processed_data.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Running some EDA and checking summaries of data:</p>
-<p>We are going to make use of loops and creating a list of the different datasets that we created to reduce separate code to run the descriptive statisitics for each dataset. We are not include the percent change dataset in these evaluations.</p>
-<p>Creating this datset list:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>list_datasets <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Full Dataset"</span> <span class="ot">=</span> hypertens_adult_filtered_no_percent,</span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"County Race-Sex"</span> <span class="ot">=</span> county_race_sex,</span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"County Race"</span> <span class="ot">=</span> county_race,</span>
-<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"County Sex"</span> <span class="ot">=</span> county_sex,</span>
-<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"County Overall"</span> <span class="ot">=</span> county_overall</span>
-<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>We will run the descriptive statistics for each dataset (as a single loop)</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop through each dataset and print basic statistics</span></span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>summary_stats <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(<span class="fu">lapply</span>(<span class="fu">names</span>(list_datasets), <span class="cf">function</span>(name) {</span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  stats <span class="ot">&lt;-</span> list_datasets[[name]] <span class="sc">%&gt;%</span></span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
-<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">mean =</span> <span class="fu">mean</span>(mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">median =</span> <span class="fu">median</span>(mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">sd =</span> <span class="fu">sd</span>(mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">min =</span> <span class="fu">min</span>(mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">max =</span> <span class="fu">max</span>(mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>  stats<span class="sc">$</span>Dataset <span class="ot">&lt;-</span> name  <span class="co"># Add dataset name for identification</span></span>
-<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(stats)</span>
-<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>}))</span>
-<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Print summary statistics</span></span>
-<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a>tibble<span class="sc">::</span><span class="fu">as_tibble</span>(summary_stats) <span class="sc">%&gt;%</span> </span>
-<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">relocate</span>(Dataset) <span class="sc">%&gt;%</span> </span>
-<span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 5 × 6
-  Dataset          mean median    sd   min   max
-  &lt;chr&gt;           &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-1 Full Dataset     221.  105.   227.   3.1 2858.
-2 County Race-Sex  220.  101.   229.   3.1 2858.
-3 County Race      213.   87.3  237.   3.1 2858.
-4 County Sex       226.  160.   221.   4   2837 
-5 County Overall   226.  161.   220.   6.4 2746.</code></pre>
-</div>
-</div>
-</section>
-<section id="identify-potential-missing-values-in-each-dataset" class="level1">
-<h1>Identify potential missing values in each dataset</h1>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">### Missing Data Summary:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-### Missing Data Summary:</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lapply</span>(<span class="fu">names</span>(list_datasets), <span class="cf">function</span>(name) {</span>
-<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  missing_count <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(list_datasets[[name]]))</span>
-<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(name, <span class="st">"has"</span>, missing_count, <span class="st">"missing values.</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Full Dataset has 0 missing values.
-County Race-Sex has 0 missing values.
-County Race has 0 missing values.
-County Sex has 0 missing values.
-County Overall has 0 missing values.</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[[1]]
-NULL
-
-[[2]]
-NULL
-
-[[3]]
-NULL
-
-[[4]]
-NULL
-
-[[5]]
-NULL</code></pre>
-</div>
-</div>
-<p>We want to visualise the different datasets:</p>
-<p>We will revisit the histogram with the percent change removed.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the distribution of mortality rates with a histogram</span></span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>revised_mortalities_histogram <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(hypertens_adult_filtered_no_percent, <span class="fu">aes</span>(<span class="at">x =</span> mortalities)) <span class="sc">+</span></span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">20</span>, <span class="at">fill =</span> <span class="st">"blue"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fu">max</span>(hypertens_adult_filtered_no_percent<span class="sc">$</span>mortalities, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">by =</span> <span class="dv">200</span>)) <span class="sc">+</span></span>
-<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of Mortality Rates"</span>, <span class="at">x =</span> <span class="st">"Mortality Rates"</span>, <span class="at">y =</span> <span class="st">"Count"</span>)</span>
-<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(revised_mortalities_histogram, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>, <span class="st">"revised_mortalities_histogram.rds"</span>))</span>
-<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>revised_mortalities_histogram <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>, <span class="st">"revised_mortalities_histogram.rds"</span>))</span>
-<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the mortalities histogram</span></span>
-<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(revised_mortalities_histogram)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="processingfile-v1_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>This is the total dataset and so the data is similar to the previous histogram. There is a strong right skew and long tail. Peak mortalities are below 100, and the total values likely account for the second peak.</p>
-<p>We will use a boxlot to get an overview of the other data:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare mortality rates across race-sex and sex stratifications</span></span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>boxplot_race_sex <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(county_race_sex, <span class="fu">aes</span>(<span class="at">x =</span> race_ethnicity, <span class="at">y =</span> mortalities, <span class="at">fill =</span> sex)) <span class="sc">+</span></span>
-<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
-<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Mortality Rates by Race and Sex"</span>, <span class="at">x =</span> <span class="st">"Race/Ethnicity"</span>, <span class="at">y =</span> <span class="st">"Mortality Rate"</span>)</span>
-<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(boxplot_race_sex, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>, <span class="st">"boxplot_race_sex.rds"</span>))</span>
-<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>boxplot_sex <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(county_sex, <span class="fu">aes</span>(<span class="at">x =</span> sex, <span class="at">y =</span> mortalities)) <span class="sc">+</span></span>
-<span id="cb63-11"><a href="#cb63-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
-<span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Mortality Rates by Sex"</span>, <span class="at">x =</span> <span class="st">"Sex"</span>, <span class="at">y =</span> <span class="st">"Mortality Rate"</span>)</span>
-<span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb63-15"><a href="#cb63-15" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(boxplot_sex, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>,<span class="st">"processed-data"</span>, <span class="st">"boxplot_sex.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>The box plots provide a good overview of the data nd indicate that there seem to be distinct trends and differences between races. It also shows that there are differences between sexes but these are less marked and distinct than between races. We will ook at this in the statistical analysis.</p>
-<p>We want an idea on any sptial trends in the data. We are using the sf function to plot the mortality data by the latitude and longitude.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert data to spatial format and create a map of mortality rates</span></span>
-<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure longitude and latitude values are numeric</span></span>
-<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>hypertens_adult_filtered_no_percent <span class="ot">&lt;-</span> hypertens_adult_filtered_no_percent <span class="sc">%&gt;%</span></span>
-<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">X_long =</span> <span class="fu">as.numeric</span>(X_long), <span class="at">Y_lat =</span> <span class="fu">as.numeric</span>(Y_lat))</span>
-<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to spatial object</span></span>
-<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a>sf_data <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(hypertens_adult_filtered_no_percent, <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"X_long"</span>, <span class="st">"Y_lat"</span>), <span class="at">crs =</span> <span class="dv">4326</span>)</span>
-<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate a spatial plot of mortality rates</span></span>
-<span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sf_data) <span class="sc">+</span></span>
-<span id="cb64-10"><a href="#cb64-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="fu">aes</span>(<span class="at">color =</span> mortalities)) <span class="sc">+</span></span>
-<span id="cb64-11"><a href="#cb64-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_c</span>() <span class="sc">+</span></span>
-<span id="cb64-12"><a href="#cb64-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb64-13"><a href="#cb64-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Geospatial Distribution of Mortality Rates"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="processingfile-v1_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>This is a very nice overview and can help us to evauate the trends further or to work on a more intricate plot. We must remember that we have not separated groups or totals yet.</p>
-<p>We want an overview of any temporal (time based) trends in the data. We will provide a proof of concept using a single county due to the overlap of data that will occur otherwise. The statistical analysis will include further refinements. We are only working with the values where sex and race were both overall to reduce overlap.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Line plot of mortality rates over time</span></span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Select a single county to illustrate the trend</span></span>
-<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>selected_county <span class="ot">&lt;-</span> <span class="st">"13037"</span>  <span class="co"># County Location ID for Calhoun, GA</span></span>
-<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>county_subset <span class="ot">&lt;-</span> county_overall <span class="sc">%&gt;%</span> <span class="fu">filter</span>(LocationID <span class="sc">==</span> selected_county)</span>
-<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>temporal_trends_single_county <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(county_subset, <span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> mortalities, <span class="at">group =</span> LocationID)) <span class="sc">+</span></span>
-<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">color =</span> <span class="st">"blue"</span>) <span class="sc">+</span></span>
-<span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
-<span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb65-10"><a href="#cb65-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(<span class="st">"Mortality Rate Trends in Calhoun"</span>), </span>
-<span id="cb65-11"><a href="#cb65-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Year"</span>, <span class="at">y =</span> <span class="st">"Mortality Rate"</span>)</span>
-<span id="cb65-12"><a href="#cb65-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-13"><a href="#cb65-13" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(temporal_trends_single_county)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="processingfile-v1_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<section id="key-findings-and-next-steps" class="level2">
-<h2 class="anchored" data-anchor-id="key-findings-and-next-steps">Key Findings and Next Steps</h2>
+<section id="summary-and-next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="summary-and-next-steps">Summary and Next Steps</h2>
 <ul>
-<li>The distribution of mortality rates is right-skewed, suggesting potential transformations before modeling.</li>
-<li>Mortality rates vary markedly by race and sex, justifying stratified analysis.</li>
-<li>A proof-of-concept temporal trend was created for a single county (Calhoun, GA) using Location ID, ensuring unique selection.</li>
-<li>Temporal trend indicate a general increase the selected county, which should be modeled.</li>
-<li>All processed data has been saved into a single RDS file (<code>final_processed_data.rds</code>) for use in statistical analysis.</li>
+<li>The data was cleaned and processed to result in a dataset and a few different variables that are much smaller and more manageable to work with.</li>
+<li>We checked for missing variables and checked overall trends and removed d data and variables that were not useful.</li>
+<li>We have saved the different created variables as a list saved into one variable.</li>
+<li>All processed data has been saved into a single RDS file (<code>final_processed_data.rds</code>) for use in exploratory data analysis.</li>
 </ul>
 </section>
 </section>

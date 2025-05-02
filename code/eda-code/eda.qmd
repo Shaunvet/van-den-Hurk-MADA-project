@@ -4,12 +4,14 @@ date: "2025-02-20"
 output: html_document
 ---
 
-
+This should be the second file to run when reproducing the full analysis for the project.
 
 # Setup
 
 ```{r}
 #load needed packages. make sure they are installed.
+library(tidyverse) #for data processing/cleaning
+library(dplyr) #for data processing/cleaning
 library(tidyr) #for data processing/cleaning
 library(skimr) #for nice visualization of data 
 library(here) #to set saving/loading paths
@@ -19,6 +21,7 @@ library(sf) #for geospatial analysis
 library(ggpubr) #for advanced visualization tools
 library(ggplot2) #for plots
 library(gt) #For a tidy table
+library(stringr)
 
 # Install if needed: 
 #install.packages("webshot")
@@ -104,8 +107,8 @@ revised_mortalities_histogram <- ggplot(processed_data_no_percent, aes(x = morta
   labs(title = "Distribution of Mortality Rates", x = "Mortality Rates", y = "Count")
 
 
-saveRDS(revised_mortalities_histogram, file = here::here("data","processed-data", "revised_mortalities_histogram.rds"))
-revised_mortalities_histogram <- readRDS(here::here("data","processed-data", "revised_mortalities_histogram.rds"))
+invisible(saveRDS(revised_mortalities_histogram, file = here::here("results","output", "eda", "revised_mortalities_histogram.rds")))
+revised_mortalities_histogram <- readRDS(here::here("results","output", "eda", "revised_mortalities_histogram.rds"))
 # Print the mortalities histogram
 print(revised_mortalities_histogram)
 ```
@@ -122,7 +125,7 @@ Age groups 2 = 65 years and older
 age_group_1 <- processed_data_no_percent %>% filter(age_group == "Ages 35-64 years")
 age_group_2 <- processed_data_no_percent %>% filter(age_group == "Ages 65+ years")
 
-# Optional: Save these for later
+# Save these for later
 saveRDS(age_group_1, here::here("data", "processed-data", "age_group_1.rds"))
 saveRDS(age_group_2, here::here("data", "processed-data", "age_group_2.rds"))
 
@@ -140,7 +143,7 @@ hist_age_group_1 <- ggplot(age_group_1, aes(x = mortalities)) +
     y = "Count")
 
 # Save new histo variable
-saveRDS(hist_age_group_1, here::here("data", "processed-data", "hist_age_group_1.rds"))
+invisible(saveRDS(hist_age_group_1, here::here("results", "output", "eda", "hist_age_group_1.rds")))
 #Print histogram
 print(hist_age_group_1)
 
@@ -155,7 +158,7 @@ hist_age_group_2 <- ggplot(age_group_2, aes(x = mortalities)) +
     y = "Count")
 
 # Save and optionally reload
-saveRDS(hist_age_group_2, here::here("data", "processed-data", "hist_age_group_2.rds"))
+invisible(saveRDS(hist_age_group_2, here::here("results", "output", "eda", "hist_age_group_2.rds")))
 # Print histogram 2
 print(hist_age_group_2)
 
@@ -174,19 +177,73 @@ boxplot_race_sex <- ggplot(county_race_sex, aes(x = race_ethnicity, y = mortalit
   theme_minimal() +
   labs(title = "Mortality Rates by Race and Sex", x = "Race/Ethnicity", y = "Mortality Rate")
 
-saveRDS(boxplot_race_sex, file = here::here("data","processed-data", "boxplot_race_sex.rds"))
+invisible(saveRDS(boxplot_race_sex, file = here::here("results", "output", "eda", "boxplot_race_sex.rds")))
 print(boxplot_race_sex)
-
-boxplot_sex <- ggplot(county_sex, aes(x = sex, y = mortalities)) +
-  geom_boxplot() +
-  theme_minimal() +
-  labs(title = "Mortality Rates by Sex", x = "Sex", y = "Mortality Rate")
-
-saveRDS(boxplot_sex, file = here::here("data","processed-data", "boxplot_sex.rds"))
-print(boxplot_sex)
 
 ```
 
+
+Summary Statistics of mean and median:
+
+```{r}
+# Summarize mean and median
+mortality_summary <- county_race %>%
+  group_by(race_ethnicity) %>%
+  summarise(
+    Mean = round(mean(mortalities, na.rm = TRUE), 1),
+    Median = round(median(mortalities, na.rm = TRUE), 1),
+    .groups = "drop"
+  ) %>%
+  rename(`Race/Ethnicity` = race_ethnicity)
+
+
+# Create gt table
+mortality_summary_gt <- mortality_summary %>%
+  gt() %>%tab_header(
+    title = "County-Level Mortality by Race/Ethnicity (2000–2019)",
+    subtitle = "Mean and median mortality rates per 100,000 population") %>%
+  cols_label(Mean = html("Mean Mortality<br>(per 100,000)"),
+    Median = html("Median Mortality<br>(per 100,000)")) %>%
+  cols_align(align = "left", columns = `Race/Ethnicity`) %>%
+  cols_align(align = "right", columns = c(Mean, Median)) %>%
+  fmt_number(columns = c(Mean, Median), decimals = 1) %>%
+  opt_table_font(font = google_font("Roboto")) %>%
+  tab_options(table.width = pct(100), column_labels.font.weight = "bold",
+    data_row.padding = px(3),heading.align = "center")
+
+
+# Save table
+gtsave(
+  mortality_summary_gt,
+  filename = here::here("results", "tables", "mortality_summary_by_race.png"))
+
+
+mortality_summary_gt
+```
+
+
+Boxpplot by sex:
+```{r}
+boxplot_sex <- ggplot(county_sex, aes(x = sex, y = mortalities)) +
+  geom_boxplot(fill = "#4C78A8", alpha = 0.7, outlier.size = 0.7, outlier.alpha = 0.5) +
+  labs(
+    title = "County-Level Mortality Rates by Sex",
+    x = "Sex",
+    y = "Mortality per 100,000"
+  ) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5),
+    axis.text.x = element_text(size = 10, hjust = 0.5))
+
+boxplot_sex
+
+# Save file as png
+ggsave(here::here("results", "figures", "mortality_by_sex.png"), plot = boxplot_sex,
+  width = 8, height = 6, dpi = 300)
+
+```
 
 The box plots provide a good overview of the data nd indicate that there seem to be distinct trends and differences between races. 
 Mortalities in the black and white race groups appear to be the highest, and there are many outliers in the white race group.
@@ -194,24 +251,39 @@ It also shows that there are differences between sexes but these are less marked
 We will look at this in the statistical analysis.
 
 
-
-
 Neatening up the boxplot for race without sex
+
 ```{r}
-# Relationship between mortality and race
-race_plot <- ggplot(county_race, aes(x = race_ethnicity, y = mortalities)) +
-  geom_boxplot() +
-  theme_minimal() +
-  labs(title = "Mortality Rates by Race/Ethnicity", x = "Race/Ethnicity", y = "Mortality Rate") +
-  theme(axis.text.x = element_text(size = 10)) +
-  scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 10))
+# Plot: Mortality by race (boxplot)
+mortality_by_race_plot <- ggplot(county_race, aes(x = race_ethnicity, y = mortalities)) +
+  geom_boxplot(fill = "#4C78A8", alpha = 0.7, outlier.size = 0.7, outlier.alpha = 0.5) +
+  stat_summary(fun = "mean", geom = "point", shape = 20, size = 2.8, color = "red") +
+  labs(
+    title = "County-Level Mortality Rates by Race/Ethnicity",
+    x = "Race/Ethnicity",
+    y = "Mortality per 100,000"
+  ) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    axis.title.x = element_text(size = 14),     
+    axis.title.y = element_text(size = 14),     
+    axis.text.x = element_text(size = 12, hjust = 0.5),
+    axis.text.y  = element_text(size = 12),)
 
+mortality_by_race_plot
 
-ggsave(here::here("results", "figures", "mortality_by_race.png"), plot = race_plot)
-print(race_plot)
+# Save file as png
+ggsave(here::here("results", "figures", "mortality_by_race.png"),
+  plot = mortality_by_race_plot, width = 8, height = 6, dpi = 300)
 
 ```
-This is the same but without sex and the colours for a neater output.
+
+This is the same but without sex and the colours for a neater output and inclusion of a dot to represent the mean values.
+
+Boxplot of county-level mortality rates by race/ethnicity in the U.S. (2000–2019).
+Red dots represent mean mortality. Although White adults had the highest median, Black adults experienced the highest mean mortality, reflecting greater spread and right-skew in their distribution.
 
 
 We want an idea on any spatial trends in the data. We are using the sf function to plot the mortality data by the latitude and longitude.
@@ -295,7 +367,7 @@ national_age_trend <- processed_data_no_percent %>%
   labs(title = "National Mortality Trends by Age Group",
        x = "Year", y = "Mean Mortality Rate", color = "Age Group")
 
-saveRDS(national_age_trend, here::here("data", "processed-data", "national_trend_by_age.rds"))
+invisible(saveRDS(national_age_trend, here::here("results", "output", "eda", "national_trend_by_age.rds")))
 print(national_age_trend)
 ```
 
@@ -315,7 +387,7 @@ race_trend_65_plus <- processed_data_no_percent %>%
   labs(title = "Mortality Trends by Race/Ethnicity (65+)",
        x = "Year", y = "Mean Mortality Rate", color = "Race")
 
-saveRDS(race_trend_65_plus, here::here("data", "processed-data", "race_trend_65_plus.rds"))
+invisible(saveRDS(race_trend_65_plus, here::here("results", "output", "eda", "race_trend_65_plus.rds")))
 print(race_trend_65_plus)
 
 ```
@@ -335,7 +407,7 @@ race_trend_35_64 <- processed_data_no_percent %>%
   labs(title = "Mortality Trends by Race/Ethnicity (Ages 35–64)",
        x = "Year", y = "Mean Mortality Rate", color = "Race")
 
-saveRDS(race_trend_35_64, here::here("data", "processed-data", "race_trend_35_64.rds"))
+invisible(saveRDS(race_trend_35_64, here::here("results", "output", "eda", "race_trend_35_64.rds")))
 print(race_trend_35_64)
 
 ```
@@ -356,7 +428,7 @@ sex_trend_65_plus <- processed_data_no_percent %>%
   labs(title = "Mortality Trends by Sex (65+)",
        x = "Year", y = "Mean Mortality Rate", color = "Sex")
 
-saveRDS(sex_trend_65_plus, here::here("data", "processed-data", "sex_trend_65_plus.rds"))
+invisible(saveRDS(sex_trend_65_plus, here::here("results", "output", "eda", "sex_trend_65_plus.rds")))
 print(sex_trend_65_plus)
 
 ```
@@ -374,7 +446,7 @@ sex_trend_35_64 <- processed_data_no_percent %>%
   labs(title = "Mortality Trends by Sex (Ages 35–64)",
        x = "Year", y = "Mean Mortality Rate", color = "Sex")
 
-saveRDS(sex_trend_35_64, here::here("data", "processed-data", "sex_trend_35_64.rds"))
+invisible(saveRDS(sex_trend_35_64, here::here("results", "output", "eda", "sex_trend_35_64.rds")))
 print(sex_trend_35_64)
 
 ```
@@ -444,7 +516,7 @@ grouped_summary_clean <- grouped_summary %>%
     heading.title.font.size = 14,
     data_row.padding = px(2))
 
-gtsave(grouped_summary_clean, here::here("results", "tables", "summary_mortality_table.png"))
+invisible(gtsave(grouped_summary_clean, here::here("results", "tables", "summary_mortality_table.png")))
 
 # View it
 grouped_summary_clean
@@ -476,7 +548,7 @@ ggplot(yearly_means, aes(x = Year, y = mean_mortality)) +
        x = "Year", y = "Mean Mortality Rate") +
   theme_minimal()
 
-saveRDS(yearly_means, here::here("data", "processed-data", "yearly_means.rds"))
+invisible(saveRDS(yearly_means, here::here("results", "output", "eda", "yearly_means.rds")))
 ```
 
 This model supports what the plots indicated that there are strong trends in the data indicating an increase in the mortality rates over time.

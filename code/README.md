@@ -1,12 +1,18 @@
 # code
 
-This folder and sub-folders should contain all your code. This can be R or Quarto files (or files for other programming languages). 
+This folder and sub-folders should contain all the code. These are Quarto files. 
 
-Place your files in the appropriate sub-folders. You can structure the folders as appropriate.
+There are 3 sub-folders that do different parts of the analysis. Processing, EDA and Statistical analysis
 
-You can either have fewer large scripts, or multiple scripts that do only specific actions. Those can be R or Quarto files (or some other language/format). In either case, document the scripts and what goes on in them so well that someone else (including future you) can easily figure out what is happening.
 
-The scripts should load the appropriate data (e.g. raw or processed), perform actions, and save results (e.g. processed data, figures, computed values) in the appropriate folders. Document somewhere what inputs each script takes and where output is placed. 
+To replicate this analysis, run the scripts within the code folder in the following order:
 
-If scripts need to be run in a specific order, document this. Either as comments in the script, or in a separate text file such as this readme file. Ideally of course in both locations.
+1 - processing-code/processingfile-v1.qmd - Processes raw data and performs initial cleaning.
+
+2 - eda-code/eda.qmd - Performs EDA steps and some basic evaluations of the data. Some outputs are produced.
+
+3 - analysis-code/statistical-analysis-v2-slim - The biggest component - full analysis and modeling steps are run here as well as generation of most outputs.
+(Note: This is a large script and will take some time and processing power to run. The script uses loops to load saved data to reduce computation but expect it to take about 15 minutes to run the full script even with those steps.)
+
+
 

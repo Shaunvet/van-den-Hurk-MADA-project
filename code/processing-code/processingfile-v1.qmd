@@ -5,6 +5,8 @@ date: "2025-02-20"
 output: html_document
 ---
 
+This should be the first file to run when reproducing the full analysis.
+
 This file is a continuation of the data processing and wrangling steps. 
 The first document highlighted the steps from importing the Excel document, the intial exploration and how the data was cleaned and reduced in R to remove the redundant columns (columns with single values).
 Some of the other columns were renamed to have the name of the column reflect what these single value columns had contained.
@@ -111,7 +113,7 @@ We want a copy of this skimr data for a table for the mauscript. We will make ed
 ```{r}
 skim_summary_hypertens_filtered<-skimr::skim(hypertens_adult_filtered)|> as.data.frame()
 kable(skim_summary_hypertens_filtered)
-saveRDS(skim_summary_hypertens_filtered, file = here::here("data","processed-data", "skim_summary_hypertens_filtered.rds"))
+invisible(saveRDS(skim_summary_hypertens_filtered, file = here::here("results", "output", "processing", "skim_summary_hypertens_filtered.rds")))
 print(skim_summary_hypertens_filtered)
 
 ```
@@ -133,8 +135,8 @@ We want to get an idea on the distribution of this data and will use a histogram
 ```{r histogram mortalities}
 #Generate a histogram of the mortality rates
 mortalities_histogram <- hist(hypertens_adult_filtered$mortalities)
-saveRDS(mortalities_histogram, file = here::here("data","processed-data", "mortalities_histogram.rds"))
-mortalities_histogram <- readRDS(here::here("data","processed-data", "mortalities_histogram.rds"))
+invisible(saveRDS(mortalities_histogram, file = here::here("results","output", "processing", "mortalities_histogram.rds")))
+mortalities_histogram <- readRDS(here::here("results", "output","processing", "mortalities_histogram.rds"))
 # Print the mortalities histogram
 print(mortalities_histogram)
 ```

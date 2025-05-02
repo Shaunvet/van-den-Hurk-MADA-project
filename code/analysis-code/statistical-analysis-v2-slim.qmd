@@ -4,6 +4,8 @@ format: html
 editor: visual
 ---
 
+This should be the third and final file to run when reproducing the full analysis. Thereafter you will get results in the manuscript/supplementary.
+
 # Setup
 
 ```{r setup}
@@ -26,6 +28,8 @@ library(vip) # For variable importance plots
 library(dplyr)
 library(tidytext)
 library(forcats)
+library(webshot2)  # for gt image export
+library(ggpubr)
 
 ```
 
@@ -64,14 +68,14 @@ lm_results_year <- broom::tidy(lm_model_year)
 
 # Display and save the regression results
 print(lm_results_year)
-saveRDS(lm_results_year, file = here::here("products", "manuscript", "supplement", "lm_results_year.rds"))
+invisible(saveRDS(lm_results_year, file = here::here("results", "output", "statistical-analysis", "lm_results_year.rds")))
 
 # Extract model fit statistics
 model_fit_lm <- broom::glance(lm_model_year) %>%
   dplyr::mutate(model = "LM: National Year Trend")
 
 # Save as table
-saveRDS(model_fit_lm, here::here("results", "tables", "model_fit_national.rds"))
+invisible(saveRDS(model_fit_lm, here::here("results", "tables", "model_fit_national.rds")))
 
 # Plot linear regression results
 lm_plot_year <- ggplot(county_overall, aes(x = Year, y = mortalities)) +
@@ -81,13 +85,13 @@ lm_plot_year <- ggplot(county_overall, aes(x = Year, y = mortalities)) +
   labs(title = "Linear Regression: Mortality Rates Over Time", x = "Year", y = "Mortality Rate")
 
 print(lm_plot_year)
-ggsave(here::here("products", "manuscript", "supplement", "lm_plot_year.png"), plot = lm_plot_year)
+invisible(ggsave(here::here("results", "figures", "lm_plot_year.png"), plot = lm_plot_year))
 
 ```
 
-This model provides a first look at overall temporal trends in mortality rates. 
+This model provides a first look at overall temporal trends in mortality rates.
 
-The linear regression model estimated a modest but statistically significant annual increase in national hypertension-related CVD mortality rates between 2000 and 2019 (slope = 1.40, p < 2.2e-16). However, as shown in the plot, the fitted trend line is visually flat due to the scale and large variation in county-level rates. The intercept value is not directly interpretable, but reflects the expected mortality rate at year zero in the model's coding. Despite the statistically significant trend, the magnitude of change is small relative to the observed range, suggesting that national mortality rates remained relatively stable over time. This model does not account for age or other demographic factors, motivating the more detailed modeling in the next section.
+The linear regression model estimated a modest but statistically significant annual increase in national hypertension-related CVD mortality rates between 2000 and 2019 (slope = 1.40, p \< 2.2e-16). However, as shown in the plot, the fitted trend line is visually flat due to the scale and large variation in county-level rates. The intercept value is not directly interpretable, but reflects the expected mortality rate at year zero in the model's coding. Despite the statistically significant trend, the magnitude of change is small relative to the observed range, suggesting that national mortality rates remained relatively stable over time. This model does not account for age or other demographic factors, motivating the more detailed modeling in the next section.
 
 ### 1.2 GLM: Race and Sex as predictors GLM with race and sex as additive predictors to assess overall differences in mortality rates
 
@@ -98,7 +102,7 @@ glm_results <- broom::tidy(glm_model)
 
 # Display and save the GLM results
 print(glm_results)
-saveRDS(glm_results, file = here::here("products", "manuscript", "supplement", "glm_results.rds"))
+invisible(saveRDS(glm_results, file = here::here("results", "output", "statistical-analysis", "glm_results.rds")))
 
 
 # Plot GLM predictions
@@ -111,12 +115,136 @@ saveRDS(glm_results, file = here::here("products", "manuscript", "supplement", "
     theme(legend.position = "right", legend.text = element_text(size = 10), legend.key.size = unit(0.4, "cm"), legend.spacing.y = unit(0.2, "cm"), axis.text.x = element_text(angle = 45, hjust = 1))
   
   print(glm_race_sex_plot)
-  ggsave(here::here("products", "manuscript", "supplement", "glm_race_sex_plot.png"), plot = glm_race_sex_plot)
+  invisible(ggsave(here::here("results", "figures", "glm_race_sex_plot.png"), plot = glm_race_sex_plot))
   
 ```
 
+```{r}
+# Examining multiple predictors
+glm_model <- glm(mortalities ~ Year + race_ethnicity + sex, data = county_race_sex, family = gaussian())
+glm_results <- broom::tidy(glm_model)
 
-The GLM including race/ethnicity and sex as predictors highlights large disparities in predicted mortality rates. Black populations had the highest predicted rates, significantly higher than all other groups (e.g., β = 205.8, p < 2e-16). Hispanic and Asian/Pacific Islander groups had lower mortality, though the Asian effect was not significant (p = 0.35). Males also showed significantly higher mortality than females (β = 20.3, p < 2e-16). Notably, the “Overall” category behaves inconsistently in plots due to it being modeled as a separate group rather than a true average, likely affected by unmodeled age variation. This supports the need to model interactions and stratify further by age.
+# Display and save the GLM results
+print(glm_results)
+invisible(saveRDS(glm_results, file = here::here("results", "output", "statistical-analysis", "glm_results.rds")))
+
+# Add predicted values
+county_race_sex$predicted_mortalities <- predict(glm_model, type = "response")
+
+# Filter out "Overall" race_ethnicity values before plotting
+plot_data <- county_race_sex %>%
+  filter(race_ethnicity != "Overall")
+
+# Create polished plot
+glm_race_sex_plot <- ggplot(plot_data, aes(x = Year, y = predicted_mortalities, color = race_ethnicity)) +
+  geom_line(size = 1.2) +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "GLM Predictions: Mortality Rates by Year and Race/Ethnicity",
+    x = "Year",
+    y = "Predicted Mortality Rate (per 100,000)",
+    color = "Race/Ethnicity"
+  ) +
+  scale_x_continuous(
+    breaks = seq(min(plot_data$Year, na.rm = TRUE), max(plot_data$Year, na.rm = TRUE), by = 5)
+  ) +
+  scale_color_discrete(labels = function(x) str_wrap(x, width = 20)) +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 11),
+    legend.key.size = unit(0.4, "cm"),
+    legend.spacing.y = unit(0.2, "cm"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(face = "bold", size = 13, hjust = 0.5))
+
+# Display plot
+print(glm_race_sex_plot)
+
+# Save figure
+ggsave(
+  here::here("results", "figures", "glm_race_sex_plot.png"),
+  plot = glm_race_sex_plot,
+  width = 7.5,
+  height = 5.5,
+  dpi = 300)
+
+
+```
+
+```{r}
+
+# Fit GLM model (no interaction)
+glm_model <- glm(mortalities ~ Year + race_ethnicity + sex, data = county_race_sex, family = gaussian())
+
+# Save tidy model output
+glm_results <- broom::tidy(glm_model)
+print(glm_results)
+invisible(saveRDS(glm_results, file = here::here("results", "output", "statistical-analysis", "glm_results.rds")))
+
+# Predict mortality values from model
+county_race_sex$predicted_mortalities <- predict(glm_model, type = "response")
+
+# Remove "Overall" for plotting
+filtered_data <- county_race_sex %>%
+  filter(race_ethnicity != "Overall")
+
+# Summarize observed means
+observed_summary <- filtered_data %>%
+  group_by(Year, race_ethnicity) %>%
+  summarise(
+    observed_mean = mean(mortalities, na.rm = TRUE),
+    .groups = "drop")
+
+# Summarize predicted means
+predicted_summary <- filtered_data %>%
+  group_by(Year, race_ethnicity) %>%
+  summarise(
+    predicted_mean = mean(predicted_mortalities, na.rm = TRUE),
+    .groups = "drop")
+
+# Join observed and predicted for plotting
+plot_data <- left_join(observed_summary, predicted_summary, by = c("Year", "race_ethnicity"))
+
+# Create overlay plot
+glm_race_sex_plot <- ggplot(plot_data, aes(x = Year, color = race_ethnicity)) +
+  geom_point(aes(y = observed_mean), size = 1.5, alpha = 0.6) +
+  geom_line(aes(y = predicted_mean), size = 1.2) +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "Observed and Predicted Mortality Rates by Race/Ethnicity (2000–2019)",
+    x = "Year",
+    y = "Mortality Rate (per 100,000)",
+    color = "Race/Ethnicity"
+  ) +
+  scale_x_continuous(
+    breaks = seq(min(plot_data$Year, na.rm = TRUE), max(plot_data$Year, na.rm = TRUE), by = 5)
+  ) +
+  scale_color_discrete(labels = function(x) str_wrap(x, width = 20)) +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5),
+    legend.position = "right",
+    legend.title = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.key.size = unit(0.4, "cm"),
+    legend.spacing.y = unit(0.2, "cm"))
+
+# Display
+print(glm_race_sex_plot)
+
+# Save plot (overwrite previous)
+ggsave(
+  here::here("results", "figures", "glm_race_sex_plot.png"),
+  plot = glm_race_sex_plot,
+  width = 7.5,
+  height = 5.5,
+  dpi = 300)
+
+
+```
+
+The GLM including race/ethnicity and sex as predictors highlights large disparities in predicted mortality rates. Black populations had the highest predicted rates, significantly higher than all other groups (e.g., β = 205.8, p \< 2e-16). Hispanic and Asian/Pacific Islander groups had lower mortality, though the Asian effect was not significant (p = 0.35). Males also showed significantly higher mortality than females (β = 20.3, p \< 2e-16). Notably, the “Overall” category behaves inconsistently in plots due to it being modeled as a separate group rather than a true average, likely affected by unmodeled age variation. This supports the need to model interactions and stratify further by age.
 
 ### 1.3 GLM: Year by Race interaction model: Fit GLM including interaction between year and race to examine race-specific trends over time
 
@@ -129,7 +257,7 @@ glm_model_interaction <- glm(mortalities ~ Year * race_ethnicity + sex, data = c
 glm_results_interaction <- broom::tidy(glm_model_interaction)
 print(glm_results_interaction)
 
-saveRDS(glm_results_interaction, file = here::here("products", "manuscript", "supplement", "glm_results_interaction.rds"))
+invisible(saveRDS(glm_results_interaction, file = here::here("results", "output", "statistical-analysis", "glm_results_interaction.rds")))
 
 
 # Plot the interaction model results
@@ -139,17 +267,153 @@ glm_interaction_plot <- ggplot(county_race_sex, aes(x = Year, y = predicted_mort
   theme_minimal() +
   labs(title = "GLM Interaction Model: Mortality Trends by Year and Race", x = "Year", y = "Predicted Mortality Rate", color = "Race/Ethnicity") +
   scale_x_continuous(breaks = seq(min(county_race_sex$Year, na.rm = TRUE), max(county_race_sex$Year, na.rm = TRUE), by = 5)) +
-  theme(legend.position = "right", legend.text = element_text(size = 10), legend.key.size = unit(0.4, "cm"), legend.spacing.y = unit(0.2, "cm"), axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(legend.position = "right", legend.text = element_text(size = 11), legend.key.size = unit(0.4, "cm"), legend.spacing.y = unit(0.2, "cm"), axis.text.x = element_text(angle = 45, hjust = 1))
 
 print(glm_interaction_plot)
-ggsave(here::here("products", "manuscript", "supplement", "glm_interaction_plot.png"), plot = glm_interaction_plot)
+invisible(ggsave(here::here("results", "figures", "glm_interaction_plot.png"), plot = glm_interaction_plot))
 
-saveRDS(county_race_sex, file = here::here("results", "output", "county_race_sex_with_preds.rds"))
+invisible(saveRDS(county_race_sex, file = here::here("results", "output", "statistical-analysis", "county_race_sex_with_preds.rds")))
 ```
 
+```{r}
+# Explore whether interactions exist between year and race/sex
+glm_model_interaction <- glm(
+  mortalities ~ Year * race_ethnicity + sex,
+  data = county_race_sex,
+  family = gaussian())
 
-Including an interaction between year and race revealed significantly divergent temporal trends. Mortality rates among Black individuals showed the steepest annual decline (β = –7.06, p < 0.001), while American Indian and Alaska Native (AI/AN) populations exhibited the largest annual increase (β for year = 3.38, p < 0.001, with positive main effect and significant negative interactions for other groups). Asian and Pacific Islander, Hispanic, and White populations also showed declining trends, though to a lesser extent. These results highlight substantial heterogeneity in how hypertension-related CVD mortality changed over time across racial/ethnic groups.
+glm_results_interaction <- broom::tidy(glm_model_interaction)
+print(glm_results_interaction)
 
+invisible(saveRDS(
+  glm_results_interaction,
+  file = here::here("results", "output", "statistical-analysis", "glm_results_interaction.rds")))
+
+# Add interaction predictions
+county_race_sex$predicted_mortalities_interaction <- predict(glm_model_interaction, type = "response")
+
+# Filter out "Overall" before plotting
+plot_data <- county_race_sex %>%
+  filter(race_ethnicity != "Overall")
+
+# Create clean interaction plot
+glm_interaction_plot <- ggplot(plot_data, aes(x = Year, y = predicted_mortalities_interaction, color = race_ethnicity)) +
+  geom_line(size = 1.2) +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "GLM Interaction Model: Mortality Trends by Year and Race/Ethnicity",
+    x = "Year",
+    y = "Predicted Mortality Rate (per 100,000)",
+    color = "Race/Ethnicity"
+  ) +
+  scale_x_continuous(
+    breaks = seq(min(plot_data$Year, na.rm = TRUE), max(plot_data$Year, na.rm = TRUE), by = 5)
+  ) +
+  scale_color_discrete(labels = function(x) str_wrap(x, width = 20)) +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 11),
+    legend.key.size = unit(0.4, "cm"),
+    legend.spacing.y = unit(0.2, "cm"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5))
+
+# Display plot
+print(glm_interaction_plot)
+
+# Save cleaned image
+ggsave(
+  here::here("results", "figures", "glm_interaction_plot.png"),
+  plot = glm_interaction_plot,
+  width = 7.5,
+  height = 5.5,
+  dpi = 300)
+
+# Save updated data
+invisible(saveRDS(county_race_sex,file = here::here("results", "output", "statistical-analysis", "county_race_sex_with_preds.rds")))
+
+```
+
+```{r}
+# Fit interaction model
+glm_model_interaction <- glm(
+  mortalities ~ Year * race_ethnicity + sex,
+  data = county_race_sex,
+  family = gaussian())
+
+# Save model results
+glm_results_interaction <- broom::tidy(glm_model_interaction)
+print(glm_results_interaction)
+invisible(saveRDS(
+  glm_results_interaction,
+  file = here::here("results", "output", "statistical-analysis", "glm_results_interaction.rds")))
+
+# Add predicted values to dataset
+county_race_sex$predicted_mortalities_interaction <- predict(glm_model_interaction, type = "response")
+
+# Filter out "Overall" before plotting
+filtered_data <- county_race_sex %>%
+  filter(race_ethnicity != "Overall")
+
+# Summarize observed data by group and year
+observed_summary <- filtered_data %>%
+  group_by(Year, race_ethnicity) %>%
+  summarise(observed_mean = mean(mortalities, na.rm = TRUE), .groups = "drop")
+
+# Summarize predicted means
+predicted_summary <- filtered_data %>%
+  group_by(Year, race_ethnicity) %>%
+  summarise(predicted_mean = mean(predicted_mortalities_interaction, na.rm = TRUE), .groups = "drop")
+
+# Combine both summaries
+plot_data <- left_join(observed_summary, predicted_summary, by = c("Year", "race_ethnicity"))
+
+# Create overlay plot
+glm_interaction_plot <- ggplot(plot_data, aes(x = Year, color = race_ethnicity)) +
+  geom_point(aes(y = observed_mean), size = 1.5, alpha = 0.6) +  # Observed
+  geom_line(aes(y = predicted_mean), size = 1.2) +               # Predicted
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "Observed and Predicted Mortality Rates by Race/Ethnicity (2000–2019)",
+    x = "Year",
+    y = "Mortality Rate (per 100,000)",
+    color = "Race/Ethnicity"
+  ) +
+  scale_x_continuous(
+    breaks = seq(min(plot_data$Year, na.rm = TRUE), max(plot_data$Year, na.rm = TRUE), by = 5)
+  ) +
+  scale_color_discrete(labels = function(x) str_wrap(x, width = 20)) +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5),
+    legend.position = "right",
+    legend.title = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.key.size = unit(0.4, "cm"),
+    legend.spacing.y = unit(0.2, "cm"))
+
+# Display updated plot
+print(glm_interaction_plot)
+
+# Save image
+ggsave(
+  here::here("results", "figures", "glm_interaction_plot.png"),
+  plot = glm_interaction_plot,
+  width = 7.5,
+  height = 5.5,
+  dpi = 300)
+
+# Save updated dataset
+invisible(saveRDS(
+  county_race_sex,
+  file = here::here("results", "output", "statistical-analysis", "county_race_sex_with_preds.rds")))
+
+
+
+```
+
+Including an interaction between year and race revealed significantly divergent temporal trends. Mortality rates among Black individuals showed the steepest annual decline (β = –7.06, p \< 0.001), while American Indian and Alaska Native (AI/AN) populations exhibited the largest annual increase (β for year = 3.38, p \< 0.001, with positive main effect and significant negative interactions for other groups). Asian and Pacific Islander, Hispanic, and White populations also showed declining trends, though to a lesser extent. These results highlight substantial heterogeneity in how hypertension-related CVD mortality changed over time across racial/ethnic groups.
 
 Given known age-related disparities in cardiovascular risk, we next modeled mortality trends across age groups. This model assesses whether older adults experienced steeper or flatter trajectories over time.
 
@@ -168,14 +432,14 @@ glm_age_group_results <- broom::tidy(glm_age_group)
 print(glm_age_group_results)
 
 # Save results
-saveRDS(glm_age_group_results, file = here::here("products", "manuscript", "supplement", "glm_age_group_results.rds"))
+invisible(saveRDS(glm_age_group_results, file = here::here("results", "output", "statistical-analysis", "glm_age_group_results.rds")))
 
 # Extract model fit statistics
 model_fit_agegroup <- broom::glance(glm_age_group) %>%
   dplyr::mutate(model = "GLM: Age Group")
 
 # Save as table
-saveRDS(model_fit_agegroup, here::here("results", "tables", "model_fit_agegroup.rds"))
+invisible(saveRDS(model_fit_agegroup, here::here("results", "tables", "model_fit_agegroup.rds")))
 
 
 # Add predicted values
@@ -195,15 +459,12 @@ glm_age_plot <- ggplot(processed_data_no_percent,
 print(glm_age_plot)
 
 # Save plot
-ggsave(here::here("products", "manuscript", "supplement", "glm_age_plot.png"), 
-       plot = glm_age_plot, width = 9, height = 6)
+invisible(ggsave(here::here("results", "figures", "glm_age_plot.png"), 
+       plot = glm_age_plot, width = 9, height = 6))
 
 ```
 
-
-This model identifies age-specific trends.Mortality among individuals aged 65+ remains substantially higher and shows modest increases, while younger age groups have lower, flatter trends.
-Including an interaction between year and age group revealed that mortality rates are substantially higher in the 65+ age group across all years. While both age groups show increasing mortality over time, the slope is significantly steeper for older adults (interaction term β = 0.224, p < 0.001), suggesting accelerated increases in mortality among those aged 65 and older.
-
+This model identifies age-specific trends.Mortality among individuals aged 65+ remains substantially higher and shows modest increases, while younger age groups have lower, flatter trends. Including an interaction between year and age group revealed that mortality rates are substantially higher in the 65+ age group across all years. While both age groups show increasing mortality over time, the slope is significantly steeper for older adults (interaction term β = 0.224, p \< 0.001), suggesting accelerated increases in mortality among those aged 65 and older.
 
 ### 1.5: Slope comparison by Age group
 
@@ -227,16 +488,45 @@ slope_table_age_fmt <- as.data.frame(summary(em_trends_age)) %>%
   dplyr::select(`Age Group` = age_group, Estimate, SE, CI)
 
 # Save as manuscript-ready table
-saveRDS(slope_table_age_fmt, here::here("results", "tables", "slope_table_agegroup_fmt.rds"))
+invisible(saveRDS(slope_table_age_fmt, here::here("results", "tables", "slope_table_agegroup_fmt.rds")))
 
 
+# Create and save polished PNG table for manuscript
+slope_table_agegroup_gt <- slope_table_age_fmt %>%
+  gt() %>%
+  tab_header(
+    title = "Estimated Annual Increase in Mortality by Age Group",
+    subtitle = "Derived from GLM with Year × Age Group Interaction"
+  ) %>%
+  fmt_number(columns = c(Estimate, SE), decimals = 3) %>%
+  cols_label(
+    `Age Group` = "Age Group",
+    Estimate = "Slope",
+    SE = "Standard Error",
+    CI = "95% CI"
+  ) %>%
+  opt_table_font(font = google_font("Roboto")) %>%
+  tab_options(table.width = pct(80),             # shrink width
+  table.font.size = "12",         # shrink font
+  data_row.padding = px(2),          # reduce row height
+  column_labels.font.weight = "bold")
+
+gtsave(
+  slope_table_agegroup_gt,
+  filename = here::here("results", "tables", "slope_table_agegroup.png"))
+
+slope_table_agegroup_gt
+
+```
+
+```{r}
 # compare trends between groups (pairwise contrast)
 slope_contrast <- contrast(em_trends_age, method = "pairwise")
 summary(slope_contrast)
 
 # Save
-saveRDS(em_trends_age, file = here::here("products", "manuscript", "supplement", "emtrends_age_group.rds"))
-saveRDS(slope_contrast, file = here::here("products", "manuscript", "supplement", "slope_contrast_age_group.rds"))
+invisible(saveRDS(em_trends_age, file = here::here("results", "output", "statistical-analysis", "emtrends_age_group.rds")))
+invisible(saveRDS(slope_contrast, file = here::here("results", "output", "statistical-analysis", "slope_contrast_age_group.rds")))
 
 
 # Format pairwise slope differences for age group
@@ -250,7 +540,7 @@ slope_contrast_age_fmt <- as.data.frame(summary(slope_contrast, infer = c(TRUE, 
   dplyr::select(Contrast = contrast, Estimate, SE, CI, p_value)
 
 # Save formatted contrast table
-saveRDS(slope_contrast_age_fmt, here::here("results", "tables", "slope_contrast_agegroup_fmt.rds"))
+invisible(saveRDS(slope_contrast_age_fmt, here::here("results", "tables", "slope_contrast_agegroup_fmt.rds")))
 
 slope_contrast_age_fmt
 
@@ -285,24 +575,20 @@ slope_plot_agegroup <- ggplot(em_trend_df, aes(x = Year.trend, y = age_group)) +
 slope_plot_agegroup
 
 # Save figure to manuscript folder
-ggsave(
-  filename = here::here("results", "figures", "slope_plot_age_group.png"),
+invisible(ggsave(filename = here::here("results", "figures", "slope_plot_age_group.png"),
   plot = slope_plot_agegroup,
-  width = 9, height = 6, dpi = 300)
+  width = 9, height = 6, dpi = 300))
 
 # Save RDS for reproducibility
-saveRDS(slope_plot_agegroup, file = here::here("results", "figures", "slope_plot_age_group.rds"))
+invisible(saveRDS(slope_plot_agegroup, file = here::here("results", "output", "statistical-analysis", "slope_plot_age_group.rds")))
 
 ```
 
-
 Using estimated marginal trends, we formally test whether the yearly rate of change differs between age groups. Older adults (65+) show a significantly steeper upward trend compared to younger adults.
 
-Estimated yearly changes in mortality rates were significantly higher for adults aged 65+ (slope = 1.26, 95% CI: 1.18–1.34) compared to those aged 35–64 (slope = 1.04, 95% CI: 0.96–1.12). The difference in slope between age groups was statistically significant (difference = -0.224, p < 0.001), indicating a steeper rise in mortality among older adults.
-
+Estimated yearly changes in mortality rates were significantly higher for adults aged 65+ (slope = 1.26, 95% CI: 1.18–1.34) compared to those aged 35–64 (slope = 1.04, 95% CI: 0.96–1.12). The difference in slope between age groups was statistically significant (difference = -0.224, p \< 0.001), indicating a steeper rise in mortality among older adults.
 
 Overall, the results from Aim 1 highlight that age is a significant modifier of temporal trends in hypertension-related cardiovascular mortality. While the overall trend appeared stable at the national level, subgroup analyses revealed that mortality has been increasing more sharply among older adults, and certain racial/ethnic groups show distinct patterns of change over time. These findings justify further exploration of disparities and spatial variation in subsequent aims.
-
 
 ## Aim 2: Spatial Analysis of Hypertension Mortality Rates
 
@@ -312,8 +598,7 @@ Evaluating spatial patterns for mortality data for all races together and indivi
 
 ### 2.1: Static maps by Race:
 
-Converting county data to spatial object using longitude/latitude. 
-Creating static spatial maps of county-level mortality rates by race/ethnicity, visualized using spatial coordinates. These provide an overview of geographic variation across U.S. counties.
+Converting county data to spatial object using longitude/latitude. Creating static spatial maps of county-level mortality rates by race/ethnicity, visualized using spatial coordinates. These provide an overview of geographic variation across U.S. counties.
 
 ```{r}
 #Convert dataset to an SF spatial object
@@ -328,7 +613,7 @@ spatial_plot_all <- ggplot() +
   labs(title = "Spatial Distribution of Mortality Rates (All Races)", x = "Longitude", y = "Latitude", color = "Mortality Rate")
 
 print(spatial_plot_all)
-ggsave(here::here("products", "manuscript", "supplement", "spatial_plot_all.png"), plot = spatial_plot_all)
+invisible(ggsave(here::here("results", "figures", "spatial_plot_all.png"), plot = spatial_plot_all))
 
 # Spatial plot for Black race
 black_race_sf <- county_race_sex_sf %>% filter(race_ethnicity == "Black")
@@ -339,7 +624,7 @@ black_spatial_plot <- ggplot() +
   labs(title = "Spatial Distribution of Mortality Rates (Black Race)", x = "Longitude", y = "Latitude", color = "Mortality Rate")
 
 print(black_spatial_plot)
-ggsave(here::here("products", "manuscript", "supplement", "black_spatial_plot.png"), plot = black_spatial_plot)
+invisible(ggsave(here::here("results", "figures", "black_spatial_plot.png"), plot = black_spatial_plot))
 
 # Spatial plot for White race
 white_race_sf <- county_race_sex_sf %>% filter(race_ethnicity == "White")
@@ -350,7 +635,7 @@ white_spatial_plot <- ggplot() +
   labs(title = "Spatial Distribution of Mortality Rates (White Race)", x = "Longitude", y = "Latitude", color = "Mortality Rate")
 
 print(white_spatial_plot)
-ggsave(here::here("products", "manuscript", "supplement", "white_spatial_plot.png"), plot = white_spatial_plot)
+invisible(ggsave(here::here("results", "figures", "white_spatial_plot.png"), plot = white_spatial_plot))
 
 # Spatial plot for Hispanic race
 hispanic_sf <- county_race_sex_sf %>% filter(race_ethnicity == "Hispanic")
@@ -361,7 +646,7 @@ hispanic_spatial_plot <- ggplot() +
   labs(title = "Spatial Distribution of Mortality Rates (Hispanic)", x = "Longitude", y = "Latitude", color = "Mortality Rate")
 
 print(hispanic_spatial_plot)
-ggsave(here::here("products", "manuscript", "supplement", "hispanic_spatial_plot.png"), plot = hispanic_spatial_plot)
+invisible(ggsave(here::here("results", "figures", "hispanic_spatial_plot.png"), plot = hispanic_spatial_plot))
 
 
 # Spatial plot for American Indian and Alaska Native race
@@ -373,7 +658,7 @@ native_spatial_plot <- ggplot() +
   labs(title = "Spatial Distribution of Mortality Rates\n(American Indian and Alaska Native)", x = "Longitude", y = "Latitude", color = "Mortality Rate")
 
 print(native_spatial_plot)
-ggsave(here::here("products", "manuscript", "supplement", "native_spatial_plot.png"), plot = native_spatial_plot)
+invisible(ggsave(here::here("results", "figures", "native_spatial_plot.png"), plot = native_spatial_plot))
 
 
 # Spatial plot for Asian and Pacific Islander race
@@ -385,7 +670,89 @@ asian_spatial_plot <- ggplot() +
   labs(title = "Spatial Distribution of Mortality Rates\n(Asian and Pacific Islander)", x = "Longitude", y = "Latitude", color = "Mortality Rate")
 
 print(asian_spatial_plot)
-ggsave(here::here("products", "manuscript", "supplement", "asian_spatial_plot.png"), plot = asian_spatial_plot)
+invisible(ggsave(here::here("results", "figures", "asian_spatial_plot.png"), plot = asian_spatial_plot))
+
+```
+
+```{r}
+# Convert to sf object
+county_race_sex_sf <- county_race_sex %>%
+  st_as_sf(coords = c("X_long", "Y_lat"), crs = 4326, remove = FALSE)
+
+# Create a reusable theme
+spatial_theme <- theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 13, face = "bold"),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 10)
+  )
+
+# 1. All races
+spatial_plot_all <- ggplot() +
+  geom_sf(data = county_race_sex_sf, aes(color = mortalities), size = 0.7) +
+  scale_color_viridis_c() +
+  labs(title = "Spatial Distribution of Mortality Rates – All Races", x = "Longitude", y = "Latitude", color = "Mortality Rate") +
+  spatial_theme
+ggsave(here::here("results", "figures", "spatial_plot_all.png"), spatial_plot_all, width = 7, height = 5, dpi = 320)
+
+spatial_plot_all
+
+# 2. Black
+black_race_sf <- county_race_sex_sf %>% filter(race_ethnicity == "Black")
+black_spatial_plot <- ggplot() +
+  geom_sf(data = black_race_sf, aes(color = mortalities), size = 0.7) +
+  scale_color_viridis_c() +
+  labs(title = "Spatial Distribution of Mortality Rates – Black", x = "Longitude", y = "Latitude", color = "Mortality Rate") +
+  spatial_theme
+ggsave(here::here("results", "figures", "black_spatial_plot.png"), black_spatial_plot, width = 7, height = 5, dpi = 320)
+
+black_spatial_plot
+
+# 3. White
+white_race_sf <- county_race_sex_sf %>% filter(race_ethnicity == "White")
+white_spatial_plot <- ggplot() +
+  geom_sf(data = white_race_sf, aes(color = mortalities), size = 0.7) +
+  scale_color_viridis_c() +
+  labs(title = "Spatial Distribution of Mortality Rates – White", x = "Longitude", y = "Latitude", color = "Mortality Rate") +
+  spatial_theme
+ggsave(here::here("results", "figures", "white_spatial_plot.png"), white_spatial_plot, width = 7, height = 5, dpi = 320)
+
+white_spatial_plot
+
+# 4. Hispanic
+hispanic_sf <- county_race_sex_sf %>% filter(race_ethnicity == "Hispanic")
+hispanic_spatial_plot <- ggplot() +
+  geom_sf(data = hispanic_sf, aes(color = mortalities), size = 0.7) +
+  scale_color_viridis_c() +
+  labs(title = "Spatial Distribution of Mortality Rates – Hispanic", x = "Longitude", y = "Latitude", color = "Mortality Rate") +
+  spatial_theme
+ggsave(here::here("results", "figures", "hispanic_spatial_plot.png"), hispanic_spatial_plot, width = 7, height = 5, dpi = 320)
+
+hispanic_spatial_plot
+
+# 5. American Indian and Alaska Native
+native_sf <- county_race_sex_sf %>% filter(race_ethnicity == "American Indian and Alaska Native")
+native_spatial_plot <- ggplot() +
+  geom_sf(data = native_sf, aes(color = mortalities), size = 0.7) +
+  scale_color_viridis_c() +
+  labs(title = "Spatial Distribution of Mortality Rates – American Indian and Alaska Native", x = "Longitude", y = "Latitude", color = "Mortality Rate") +
+  spatial_theme
+ggsave(here::here("results", "figures", "native_spatial_plot.png"), native_spatial_plot, width = 7, height = 5, dpi = 320)
+
+native_spatial_plot
+
+# 6. Asian and Pacific Islander
+asian_sf <- county_race_sex_sf %>% filter(race_ethnicity == "Asian and Pacific Islander")
+asian_spatial_plot <- ggplot() +
+  geom_sf(data = asian_sf, aes(color = mortalities), size = 0.7) +
+  scale_color_viridis_c() +
+  labs(title = "Spatial Distribution of Mortality Rates – Asian and Pacific Islander", x = "Longitude", y = "Latitude", color = "Mortality Rate") +
+  spatial_theme
+ggsave(here::here("results", "figures", "asian_spatial_plot.png"), asian_spatial_plot, width = 10, height = 5, dpi = 320)
+
+asian_spatial_plot
 
 ```
 
@@ -394,26 +761,40 @@ ggsave(here::here("products", "manuscript", "supplement", "asian_spatial_plot.pn
 Combining all spatial race-specific maps into a multi-panel figure.
 
 ```{r}
+# Explicit spacing and margins
+combined_spatial_plot <- (
+  spatial_plot_all + theme(plot.margin = margin(10, 10, 10, 10)) |
+  black_spatial_plot + theme(plot.margin = margin(10, 10, 10, 10))
+) /
+(
+  white_spatial_plot + theme(plot.margin = margin(10, 10, 10, 10)) |
+  hispanic_spatial_plot + theme(plot.margin = margin(10, 10, 10, 10))
+) /
+(
+  native_spatial_plot + theme(plot.margin = margin(10, 10, 10, 10)) |
+  asian_spatial_plot + theme(plot.margin = margin(10, 10, 10, 10))
+)
 
-# Combine all of the spatial charts using patchwork
-combined_spatial_plot <- (spatial_plot_all | black_spatial_plot | white_spatial_plot) /
-  (hispanic_spatial_plot | native_spatial_plot |
-  asian_spatial_plot)
 
-# Print and save the combined spatial plot
+ggsave(
+  here::here("results", "figures", "combined_spatial_plot.png"),
+  plot = combined_spatial_plot,
+  width = 21,   # large print-friendly layout
+  height = 15,
+  dpi = 320
+)
+
 print(combined_spatial_plot)
-ggsave(here::here("products", "manuscript", "supplement", "combined_spatial_plot.png"), 
-       plot = combined_spatial_plot, width = 14, height = 10)
-
 ```
 
-These plots are best viewed as images outside of R due to size.
+These plots are best viewed as images outside of R due to size limits in R.
 
 Static maps show clear geographic variation in hypertension-related CVD mortality. Black and White populations exhibit widespread mortality across the Southeast and Midwest, while Hispanic and Asian populations show more localized clusters, reflecting regional concentration and data availability. The highest mortality hotspots for American Indian and Alaska Native groups are found in the central U.S., consistent with known health disparities.
 
 While visual maps provide insight into geographic differences in mortality, they do not quantify the extent of spatial clustering. To formally assess spatial autocorrelation, we next apply Global Moran’s I and Local Indicators of Spatial Association (LISA) statistics.
 
 ### Evaluating spatial clustering of Mortality Rates.
+
 ### 2.3: Global Moran’s I – All Races Combined
 
 We will run a Global Morans analysis to evalaute spatial clustering using K-nearest neighbour clustering. We are looking at the full dataset here which is very computationally intensive. Thus we are setting the code to load the output, but if its not present (not saved) then it will run. We have saved the output in the large
@@ -462,14 +843,12 @@ moran_table <- tibble::tibble(
 moran_table
 
 # Save to results/tables
-saveRDS(moran_table, here::here("results", "tables", "global_morans_i_summary.rds"))
-saveRDS(moran_result, file = moran_path)
+invisible(saveRDS(moran_table, here::here("results", "tables", "global_morans_i_summary.rds")))
+invisible(saveRDS(moran_result, file = moran_path))
 
 ```
 
-
-
-The Global Moran’s I statistic (I = 0.0435, p < 0.001) indicates weak but statistically significant positive spatial autocorrelation in hypertension-related CVD mortality at the county level. There is weak-to-moderate positive spatial autocorrelation in mortality rates across U.S. counties — counties with high (or low) mortality tend to be near others with similarly high (or low) values. Although the magnitude is small (I = 0.0435), the pattern is considered statistically significant based on the p-value. This suggests that counties with high mortality rates tend to cluster geographically, rather than being randomly distributed. The presence of spatial autocorrelation supports further analysis using Local Moran’s I to identify specific high- and low-mortality clusters.
+The Global Moran’s I statistic (I = 0.0435, p \< 0.001) indicates weak but statistically significant positive spatial autocorrelation in hypertension-related CVD mortality at the county level. There is weak-to-moderate positive spatial autocorrelation in mortality rates across U.S. counties — counties with high (or low) mortality tend to be near others with similarly high (or low) values. Although the magnitude is small (I = 0.0435), the pattern is considered statistically significant based on the p-value. This suggests that counties with high mortality rates tend to cluster geographically, rather than being randomly distributed. The presence of spatial autocorrelation supports further analysis using Local Moran’s I to identify specific high- and low-mortality clusters.
 
 After confirming statistically significant spatial autocorrelation at the national level, we use Local Moran’s I to identify potential clusters of high or low mortality at the county level.
 
@@ -519,10 +898,10 @@ lisa_point_plot <- ggplot(county_lisa_coords) +
   theme_minimal(base_size = 12)
 
 # Save plot
-ggsave(filename = here::here("products", "manuscript", "supplement", "lisa_significance_map_centroids.png"),
+invisible(ggsave(filename = here::here("results", "figures", "lisa_significance_map_centroids.png"),
   plot = lisa_point_plot,
   width = 10,
-  height = 6)
+  height = 6))
 
 
 print(lisa_point_plot)
@@ -586,16 +965,16 @@ lisa_cluster_plot <- ggplot(county_lisa_coords) +
 # Print and save
 print(lisa_cluster_plot)
 
-ggsave(
-  here::here("products", "manuscript", "supplement", "lisa_cluster_type_map.png"),
+invisible(ggsave(here::here("results", "figures", "lisa_cluster_type_map.png"),
   plot = lisa_cluster_plot,
-  width = 10, height = 6)
+  width = 10, height = 6))
 
 ```
 
 Local Moran’s I was computed on the full national dataset using 5-nearest-neighbor spatial weights. Each county was represented by a centroid, and clustering patterns reflect spatial autocorrelation of mortality rates across all years and subgroups.
 
-#### Focusing at a State level Due to the size of the dataset it is challenging to work with the full dataset. 
+#### Focusing at a State level Due to the size of the dataset it is challenging to work with the full dataset.
+
 For convenience and because the SouthEast is historically known to have a high prevalence of cardiovasccular mortalities we will focus on Georgia for this next step. Our previous analysis support that there is a general distribution of cases here, even if there are not distinct hotspots.
 
 Analyzing spatial clusters in Georgia using LISA.
@@ -621,7 +1000,6 @@ if (file.exists(ga_knn_path) && file.exists(ga_lw_path)) {
   saveRDS(ga_lw, file = ga_lw_path)}
 
 ```
-
 
 ```{r ga-lisa-analysis, message=FALSE}
 
@@ -679,11 +1057,10 @@ ga_lisa_plot <- ggplot(ga_coords_df) +
 # Display and save
 print(ga_lisa_plot)
 
-ggsave(
-  here::here("products", "manuscript", "supplement", "ga_lisa_cluster_plot.png"),
+invisible(ggsave(here::here("results", "figures", "ga_lisa_cluster_plot.png"),
   plot = ga_lisa_plot,
   width = 8,
-  height = 6)
+  height = 6))
 ```
 
 A spatial weights matrix was created for Georgia counties using nearest-neighbor distances. LISA statistics were computed to explore clustering, but no statistically significant local hotspots were observed.
@@ -769,10 +1146,10 @@ ms_lisa_plot <- ggplot(ms_coords_df) +
 
 print(ms_lisa_plot)
 
-ggsave(filename = here::here("products", "manuscript", "supplement", "ms_lisa_cluster_plot.png"),
+invisible(ggsave(filename = here::here("results", "figures", "ms_lisa_cluster_plot.png"),
   plot = ms_lisa_plot,
   width = 8,
-  height = 6)
+  height = 6))
 
 ```
 
@@ -808,7 +1185,6 @@ if (file.exists(tx_knn_path) && file.exists(tx_lw_path)) {
 }
 
 ```
-
 
 ```{r tx-lisa-analysis, message=FALSE}
 
@@ -869,10 +1245,9 @@ tx_lisa_plot <- ggplot(tx_coords_df) +
 print(tx_lisa_plot)
 
 # Save plot
-ggsave(
-  filename = here::here("products", "manuscript", "supplement", "tx_lisa_cluster_plot.png"),
+invisible(ggsave(filename = here::here("results", "figures", "tx_lisa_cluster_plot.png"),
   plot = tx_lisa_plot,
-  width = 9, height = 6)
+  width = 9, height = 6))
 ```
 
 LISA analysis was performed on counties in Texas using centroid-based spatial weights. While global spatial autocorrelation was detected, no statistically significant local clusters were identified.
@@ -880,7 +1255,6 @@ LISA analysis was performed on counties in Texas using centroid-based spatial we
 Analyzing spatial clusters in Kentucky using LISA.
 
 ```{r}
-
 # Paths for saving spatial weights
 ky_knn_path <- here::here("results", "output", "ky_knn_neighbors.rds")
 ky_lw_path  <- here::here("results", "output", "ky_spatial_weights.rds")
@@ -946,16 +1320,15 @@ lisa_ky_plot <- ggplot(county_ky_coords) +
   theme_minimal(base_size = 12)
 
 # Save
-ggsave(
-  here::here("products", "manuscript", "supplement", "lisa_cluster_kentucky.png"),
-  plot = lisa_ky_plot, width = 9, height = 6)
+invisible(ggsave(here::here("results", "figures", "lisa_cluster_kentucky.png"),
+  plot = lisa_ky_plot, width = 9, height = 6))
 
 
 # Compute Global Moran’s I for Kentucky
 ky_moran_result <- moran.test(county_ky_sf$mortalities, ky_lw)
 
 # Save the result
-saveRDS(ky_moran_result, here::here("results", "output", "ky_global_morans_i.rds"))
+invisible(saveRDS(ky_moran_result, here::here("results", "output", "ky_global_morans_i.rds")))
 
 print(lisa_ky_plot)
 
@@ -963,8 +1336,7 @@ print(lisa_ky_plot)
 
 the LISA plot shows spatial patterns across all available data, not just one year
 
-
-The Local Moran’s I analysis detected significant spatial clustering of mortality rates across U.S. counties. Nationally, over 40% of counties showed statistically significant clustering at p < 0.05. However, most of these represented spatial outliers—counties with high (or low) mortality rates surrounded by contrasting neighbors—rather than concentrated hotspots. Only a small number of “High–High” clusters (hotspots) were identified, indicating that extreme spatial concentrations of high mortality are rare.
+The Local Moran’s I analysis detected significant spatial clustering of mortality rates across U.S. counties. Nationally, over 40% of counties showed statistically significant clustering at p \< 0.05. However, most of these represented spatial outliers—counties with high (or low) mortality rates surrounded by contrasting neighbors—rather than concentrated hotspots. Only a small number of “High–High” clusters (hotspots) were identified, indicating that extreme spatial concentrations of high mortality are rare.
 
 Cluster types varied across states:
 
@@ -980,10 +1352,7 @@ Local spatial analysis (LISA) identified a small number of statistically signifi
 
 Across all states, the most consistent pattern was the presence of outlier counties—areas with mortality rates that diverged significantly from their neighbors.
 
-
-
 Compile Global Moran’s I test results from the USA and selected high-mortality states (GA, MS, TX, KY). This table summarizes the spatial autocorrelation of mortality rates.
-
 
 ### 2.5 Global Moran's I Summary Table
 
@@ -1034,19 +1403,15 @@ moran_gt_tbl <- moran_summary %>%
     column_labels.font.weight = "bold")
 
 # Save table
-saveRDS(moran_gt_tbl, here::here("results", "tables", "moran_global_summary.rds"))
+invisible(saveRDS(moran_gt_tbl, here::here("results", "tables", "moran_global_summary.rds")))
 
 # View
 moran_gt_tbl
 ```
 
-
-
 A summary table of Global Moran’s I statistics for the full U.S. dataset and selected states (GA, MS, TX, KY) is shown below, indicating statistically significant spatial autocorrelation in all geographies examined (p \< 0.001).
 
-Global Moran’s I statistics were statistically significant across all regions analyzed. The USA showed weak but significant positive spatial autocorrelation (I = 0.0435, p < 0.001). Georgia, Mississippi, Texas, and Kentucky also had low Moran’s I values (0.0168–0.0297), but all were statistically significant (p < 0.001), confirming that mortality rates were not randomly distributed in space. These findings support further investigation of local spatial clustering using LISA.
-
-
+Global Moran’s I statistics were statistically significant across all regions analyzed. The USA showed weak but significant positive spatial autocorrelation (I = 0.0435, p \< 0.001). Georgia, Mississippi, Texas, and Kentucky also had low Moran’s I values (0.0168–0.0297), but all were statistically significant (p \< 0.001), confirming that mortality rates were not randomly distributed in space. These findings support further investigation of local spatial clustering using LISA.
 
 ## Aim 3: Demographic Disparities
 
@@ -1070,7 +1435,7 @@ model_fit_race_sex <- broom::glance(glm_model_interaction) %>%
   dplyr::mutate(model = "GLM: Race × Sex × Year")
 
 # Save for results
-saveRDS(model_fit_race_sex, here::here("results", "tables", "model_fit_race_sex.rds"))
+invisible(saveRDS(model_fit_race_sex, here::here("results", "tables", "model_fit_race_sex.rds")))
 
 # Create a table of slopes for each race-sex group 
 # Format slope estimates for manuscript table
@@ -1082,13 +1447,42 @@ slope_table_race_sex_fmt <- as.data.frame(summary(em_trends_race_sex)) %>%
   dplyr::select(Race = race_ethnicity, Sex = sex, Estimate, SE, CI)
 
 # Save nicely formatted table
-saveRDS(slope_table_race_sex_fmt, here::here("results", "tables", "slope_table_race_sex_fmt.rds"))
+invisible(saveRDS(slope_table_race_sex_fmt, here::here("results", "tables", "slope_table_race_sex_fmt.rds")))
 
 #Display table:
 #Note: p.value of 0.00e+00 is actually p < 2.2e-16
 view(slope_table_race_sex_fmt)
 
 
+# Create high-quality PNG table for manuscript
+slope_table_race_sex_gt <- slope_table_race_sex_fmt %>%
+  gt() %>%
+  tab_header(
+    title = "Estimated Annual Mortality Slopes by Race/Ethnicity and Sex",
+    subtitle = "From GLM with Year × Race × Sex Interaction"
+  ) %>%
+  fmt_number(columns = c(Estimate, SE), decimals = 3) %>%
+  cols_label(
+    Race = "Race/Ethnicity",
+    Sex = "Sex",
+    Estimate = "Slope",
+    SE = "Standard Error",
+    CI = "95% CI"
+  ) %>%
+  opt_table_font(font = google_font("Roboto")) %>%
+  tab_options(table.font.size = 10)
+
+# Save as image for manuscript inclusion
+gtsave(
+  slope_table_race_sex_gt,
+  filename = here::here("results", "tables", "slope_table_race_sex.png")
+)
+
+slope_table_race_sex_gt
+
+```
+
+```{r}
 # Compare slopes between race/sex groups
 slope_contrast_race_sex <- contrast(em_trends_race_sex, method = "pairwise")
 
@@ -1097,8 +1491,8 @@ summary(slope_contrast_race_sex)
 print(slope_contrast_race_sex)
 
 # Save slope estimates and pairwise contrasts
-saveRDS(em_trends_race_sex, file = here::here("results", "output", "emtrends_race_sex.rds"))
-saveRDS(slope_contrast_race_sex, file = here::here("results", "output", "slope_contrast_race_sex.rds"))
+invisible(saveRDS(em_trends_race_sex, file = here::here("results", "output", "emtrends_race_sex.rds")))
+invisible(saveRDS(slope_contrast_race_sex, file = here::here("results", "output", "slope_contrast_race_sex.rds")))
 
 # Create a table comparing slopewise pairwise comparison between groups for each race-sex group
 # Format race/sex slope difference table
@@ -1131,8 +1525,8 @@ slope_plot_race_sex <- plot(em_trends_race_sex) +
 
 
 # Save and display the plot
-ggsave(here::here("results", "output", "slope_plot_race_sex.png"),
-       plot = slope_plot_race_sex, width = 10, height = 6)
+invisible(ggsave(here::here("results", "figures", "slope_plot_race_sex.png"),
+       plot = slope_plot_race_sex, width = 10, height = 6))
 print(slope_plot_race_sex)
 ```
 
@@ -1187,7 +1581,7 @@ em_trends_race_sex_age <- emtrends(glm_race_sex_age,
                                    var = "Year")
 
 # Save slopes
-saveRDS(em_trends_race_sex_age, here::here("results", "output", "emtrends_race_sex_by_age.rds"))
+invisible(saveRDS(em_trends_race_sex_age, here::here("results", "output", "emtrends_race_sex_by_age.rds")))
 
 # Print to console
 summary(em_trends_race_sex)
@@ -1206,7 +1600,7 @@ Compare estimated slopes between all demographic subgroups within each age group
 slope_contrast_race_sex_age <- contrast(em_trends_race_sex_age, method = "pairwise")
 
 # Save
-saveRDS(slope_contrast_race_sex_age, here::here("results", "output", "slope_contrast_race_sex_by_age.rds"))
+invisible(saveRDS(slope_contrast_race_sex_age, here::here("results", "output", "slope_contrast_race_sex_by_age.rds")))
 
 # Convert to dataframe
 slope_contrast_race_sex_age_fmt <- as.data.frame(summary(slope_contrast_race_sex_age, infer = c(TRUE, TRUE))) %>%
@@ -1222,8 +1616,7 @@ slope_contrast_race_sex_age_sorted <- slope_contrast_race_sex_age_fmt %>%
   dplyr::arrange(p_value, dplyr::desc(abs(Estimate)))
 
 # Save output
-saveRDS(slope_contrast_race_sex_age_sorted,
-        here::here("results", "output", "slope_contrast_race_sex_by_age_sorted.rds"))
+invisible(saveRDS(slope_contrast_race_sex_age_sorted, here::here("results", "output", "slope_contrast_race_sex_by_age_sorted.rds")))
 
 # View sorted results
 view(slope_contrast_race_sex_age_sorted)
@@ -1264,8 +1657,8 @@ contrast_plot <- ggplot(contrast_top, aes(x = estimate, y = reorder(contrast, es
   theme_minimal(base_size = 11)
 
 # Save and display
-ggsave(here::here("results", "output", "pairwise_slope_contrasts_filtered.png"),
-  plot = contrast_plot, width = 11, height = 8)
+invisible(ggsave(here::here("results", "figures", "pairwise_slope_contrasts_filtered.png"),
+  plot = contrast_plot, width = 11, height = 8))
 print(contrast_plot)
 
 ```
@@ -1273,73 +1666,75 @@ print(contrast_plot)
 To improve clarity, cleaned labels were applied to simplify group names and facet plots were split by age group. Bar height reflects annual change in mortality; error bars represent 95% confidence intervals.
 
 ```{r}
-# Convert estimated emtrends object to a data frame for plotting
-# Create a group label that includes race, sex, and age group
-slope_df <- as.data.frame(em_trends_race_sex_age) %>%
-  mutate(group = paste(race_ethnicity, sex),
-         group = paste(group, age_group, sep = "___"))
-
-
 # Helper function to clean group labels (removes age group text)
 clean_labels <- function(df) {
   df %>%
     mutate(
       group = str_remove(group, "___Ages 35-64 years"),
       group = str_remove(group, "___Ages 65\\+ years"),
-      group = str_replace(group, "Asian and Pacific Islander", "Asian & Pacific\nIslander"),
-      group = str_replace(group, "American Indian and Alaska Native", "American Indian\n& Alaska Native"),
-      group = str_replace(group, "Overall Female", "Female"),
-      group = str_replace(group, "Overall Male", "Male"),
-      group = str_replace(group, "Overall Overall", "All Groups"),
-      group = str_replace(group, "White Overall", "White"),
-      group = str_replace(group, "Black Overall", "Black"),
-      group = str_replace(group, "Hispanic Overall", "Hispanic"),
-      group = str_replace(group, "Asian & Pacific\nIslander Overall", "Asian & Pacific\nIslander"),
-      group = str_replace(group, "American Indian\n& Alaska Native Overall", "American Indian\n& Alaska Native"),
-      group = str_trim(group))}
+      group = str_replace_all(group, "Asian and Pacific Islander", "Asian & Pacific Islander"),
+      group = str_replace_all(group, "American Indian and Alaska Native", "American Indian & Alaska Native"),
+      group = case_when(
+        str_detect(group, "^Overall Female") ~ "Overall Female (All Races)",
+        str_detect(group, "^Overall Male") ~ "Overall Male (All Races)",
+        str_detect(group, "^Overall Overall") ~ "Overall (All Races and Sexes)",
+        TRUE ~ group
+      ),
+      group = str_squish(group),
+      group = str_wrap(group, width = 18))}
 
+# Convert estimated emtrends object to a data frame for plotting
+# Create a group label that includes race, sex, and age group
 # Apply and split
+slope_df <- as.data.frame(em_trends_race_sex_age) %>%
+  mutate(group = paste(race_ethnicity, sex),
+         group = paste(group, age_group, sep = "___"))
+
 slope_df_35_64 <- slope_df %>% filter(age_group == "Ages 35-64 years") %>% clean_labels()
 slope_df_65_plus <- slope_df %>% filter(age_group == "Ages 65+ years") %>% clean_labels()
 
-# Common ggplot function
-make_slope_plot <- function(data, title, fill_color) {
-  data <- data %>% 
-    filter(!is.na(group), !is.na(Year.trend)) %>%   # remove rows with missing group or slope
-    mutate(group = as.factor(group))                # make sure group is a factor
-
-  ggplot(data, aes(x = Year.trend, y = fct_reorder(group, Year.trend))) +
-    geom_col(fill = fill_color) +
-    geom_errorbarh(aes(xmin = Year.trend - 1.96 * SE,
-                       xmax = Year.trend + 1.96 * SE),
-                   height = 0.3, color = "black", alpha = 0.7) +
-    labs(title = title,
-      x = "Estimated Annual Change in Mortality Rate",
-      y = "Race and Ethnicity") +
-    theme_minimal(base_size = 13) +
+# Final slope plot function
+make_slope_plot <- function(data, title_text, fill_color) {
+  data %>%
+    filter(!is.na(group), !is.na(Year.trend)) %>%
+    mutate(group = fct_reorder(group, Year.trend)) %>%
+    ggplot(aes(x = Year.trend, y = group)) +
+    geom_col(fill = fill_color, width = 0.7, alpha = 0.9) +
+    geom_errorbarh(
+      aes(xmin = Year.trend - 1.96 * SE, xmax = Year.trend + 1.96 * SE),
+      height = 0.3, color = "black", alpha = 0.7
+    ) +
+    labs(
+      title = title_text,
+      subtitle = "Estimated slope with 95% CI from GLM (Year × Race × Sex)",
+      x = "Estimated Annual Change in Mortality Rate (per 100,000)",
+      y = "Race/Sex Group"
+    ) +
+    theme_minimal(base_size = 14) +
     theme(
-      plot.title = element_text(hjust = 0.5),
-      axis.text.y = element_text(size = 11),
-      axis.text.x = element_text(size = 11))}
+      plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+      plot.subtitle = element_text(size = 16, hjust = 0.5),
+      axis.title = element_text(size = 15),
+      axis.text.y = element_text(size = 15),
+      axis.text.x = element_text(size = 15)
+    )
+}
 
+# Create final plots
+slope_plot_35_64 <- make_slope_plot(slope_df_35_64, "Estimated Annual Mortality Change (Ages 35–64)", "#4C78A8")
+slope_plot_65_plus <- make_slope_plot(slope_df_65_plus, "Estimated Annual Mortality Change (Ages 65+)", "#A2C7E5")
 
-# Generate plots
-slope_plot_35_64 <- make_slope_plot(slope_df_35_64, "Estimated Annual Mortality Change (Ages 35–64)", "#F8766D")
-slope_plot_65_plus <- make_slope_plot(slope_df_65_plus, "Estimated Annual Mortality Change (Ages 65+)", "#00BFC4")
+# Save both
+ggsave(here("results", "figures", "slope_plot_35_64.png"), slope_plot_35_64, width = 10.5, height = 7, dpi = 300)
+ggsave(here("results", "figures", "slope_plot_65_plus.png"), slope_plot_65_plus, width = 10.5, height = 7, dpi = 300)
 
-# Save plots
-ggsave(here("results", "figures", "slope_plot_35_64.png"),
-       slope_plot_35_64, width = 11, height = 7, dpi = 300)
-
-ggsave(here("results", "figures", "slope_plot_65_plus.png"),
-       slope_plot_65_plus, width = 11, height = 7, dpi = 300)
-
-# Save RDS objects (optional)
-saveRDS(slope_plot_35_64, here("results", "figures", "slope_plot_35_64.rds"))
-saveRDS(slope_plot_65_plus, here("results", "figures", "slope_plot_65_plus.rds"))
+#Save slimmed RDS for manuscript or reuse
+saveRDS(slope_plot_35_64, here("results", "output", "statistical-analysis", "slope_plot_35_64.rds"))
+saveRDS(slope_plot_65_plus, here("results", "output", "statistical-analysis", "slope_plot_65_plus.rds"))
 
 slope_plot_35_64
-slope_plot_65_plus
+slope_plot_65_plus 
+
 ```
 
 Estimated annual change in hypertension-related CVD mortality per 100,000 adults, stratified by race/ethnicity and age group (2000–2019). Bars represent modeled slope estimates, and error bars represent 95% confidence intervals. “Overall” groups include both sexes; sex-specific estimates were excluded where modeling was not feasible.
@@ -1369,18 +1764,16 @@ mortality_summary_table <- county_race_sex %>%
   )
 
 # Save for manuscript
-saveRDS(mortality_summary_table, here::here("results", "tables", "mortality_summary_table.rds"))
+invisible(saveRDS(mortality_summary_table, here::here("results", "tables", "mortality_summary_table.rds")))
 
 mortality_summary_table
 ```
 
 We provide baseline descriptive statistics of hypertension-related CVD mortality to contextualize the modeled slope differences. Among adults aged 35–64, Black individuals had the highest mean mortality rate (92.2 per 100,000), followed by American Indian and Alaska Native (AI/AN) adults (46.2), with Asian and Pacific Islander adults showing the lowest (17.7). These patterns were consistent in the 65+ age group, where Black adults again had the highest average mortality (662.6), while Asian and Pacific Islander adults had the lowest (308.7). The wide ranges and standard deviations suggest substantial geographic heterogeneity, particularly in older adults. These differences reinforce the need for stratified modeling.
 
-
 ## Aim 4: Predict County-level Mortality rates
 
 In this section, we evaluate predictive models for estimating county-level hypertension-related cardiovascular disease (CVD) mortality based on demographic and temporal predictors, including race/ethnicity, sex, age group, and year.
-
 
 ### 4.1 Data Preparation for modeling
 
@@ -1403,7 +1796,6 @@ test_data  <- testing(data_split)
 cv_folds <- vfold_cv(train_data, v = 10, strata = mortalities)
 
 ```
-
 
 ## 4.2 Random Forest Modeling
 
@@ -1436,11 +1828,9 @@ rf_workflow <- workflow() %>%
 
 Hyperparamter tuning and fitting a random forest model: We will tune a random forest with 10-Fold cross-validation:
 
-
 ### 4.2.1 Hyperparameter Tuning
 
-To optimize the number of predictors (`mtry`) and minimum node size (`min_n`), we perform 10-fold cross-validation over a regular grid of parameter values.
-# Define path to save tuning results
+To optimize the number of predictors (`mtry`) and minimum node size (`min_n`), we perform 10-fold cross-validation over a regular grid of parameter values. \# Define path to save tuning results
 
 Creeating a slimmed down version of the tuning RDS file to reduce file size for Github and working with if statements to load this from the correct folder and to not overwrite files.
 
@@ -1519,8 +1909,6 @@ if (file.exists(rf_tuned_path) && file.exists(rf_metrics_path) &&
 
 The slim model can be toggled on or off here by changing from TRUE to FALSE if wanting to use the full version. The full RDS file is saved in the large-files folder which will not automatically upload to github.
 
-
-
 ```{r}
 #Slim version already loads rf_metrics, so no need to reload
 rf_metrics %>% filter(.metric == "rmse") %>% arrange(mean)
@@ -1529,7 +1917,55 @@ rf_metrics %>% filter(.metric == "rmse") %>% arrange(mean)
 
 The optimal Random Forest model was selected with mtry = 4 and min_n = 15, yielding the lowest cross-validated RMSE (115.2). Performance differences between parameter combinations were minor when mtry = 4, but models with fewer predictors showed substantially higher RMSE values.
 
+```{r}
+# Build summary with 95% CI
+rf_cv_summary <- rf_metrics %>%
+  filter(.metric %in% c("rmse", "rsq")) %>%
+  mutate(
+    lower_95 = mean - 1.96 * std_err,
+    upper_95 = mean + 1.96 * std_err,
+    ci_range = paste0(sprintf("%.2f", mean), " [", 
+                      sprintf("%.2f", lower_95), ", ", 
+                      sprintf("%.2f", upper_95), "]")
+  ) %>%
+  select(.metric, ci_range, mtry, min_n) %>%
+  arrange(.metric, mtry)
 
+# Get row with best RMSE
+rf_cv_summary_table <- rf_cv_summary %>%
+  group_by(.metric) %>%
+  slice_min(mtry, n = 1) %>%
+  ungroup() %>%
+  tidyr::pivot_wider(names_from = .metric, values_from = ci_range) %>%
+  rename(
+    `mtry` = mtry,
+    `min_n` = min_n,
+    `RMSE (95% CI)` = rmse,
+    `R² (95% CI)` = rsq
+  )
+
+# Create GT table
+rf_cv_gt <- rf_cv_summary_table %>%
+  gt() %>%
+  tab_header(
+    title = md("**Random Forest CV Performance Summary**"),
+    subtitle = "Mean performance across 10-fold CV with 95% confidence intervals"
+  ) %>%
+  tab_options(
+    table.font.size = "small",
+    table.width = pct(70),
+    column_labels.font.weight = "bold",
+    data_row.padding = px(3)
+  )
+
+# Save
+saveRDS(rf_cv_gt, here("results", "output", "statistical-analysis", "rf_cv_performance_table.rds"))
+gtsave(rf_cv_gt, here("results", "tables", "rf_cv_performance_table.png"), expand = 3)
+
+rf_cv_gt
+
+
+```
 
 ```{r}
 
@@ -1599,7 +2035,6 @@ print(rf_test_metrics)
 
 ```
 
-
 The model is performing well, RMSE and MAE both reflect reasonable prediction error magnitudes, with reasonable error and strong explanatory power.
 
 ```{r}
@@ -1617,76 +2052,111 @@ rf_summary_table <- rf_test_metrics %>%
   select(Model, RMSE = rmse, R2 = rsq, MAE = mae, Notes)
 
 # Save the summary table
-saveRDS(rf_summary_table, here::here("results", "tables", "model_performance_summary.rds"))
+invisible(saveRDS(rf_summary_table, here::here("results", "tables", "rf_performance_summary.rds")))
 
 rf_summary_table
 ```
 
 The final random forest model achieved an RMSE of 115.3, MAE of 66.9, and R² of 0.748 on the test set. These metrics indicate strong predictive accuracy and model fit.
 
-
 ```{r}
-## Random Forest: Predicted vs Observed Plot
+# Load predictions
+rf_predictions <- readRDS(here("results", "output", "rf_test_predictions.rds"))
 
-# Load predictions (if not already in memory)
-rf_predictions <- readRDS(here::here("results", "output", "rf_test_predictions.rds"))
+# Calculate R² on test set (optional overlay)
+r_squared <- cor(rf_predictions$mortalities, rf_predictions$.pred)^2
 
-# Create the predicted vs observed plot
+# Generate the plot
 rf_pred_plot <- ggplot(rf_predictions, aes(x = mortalities, y = .pred)) +
-  geom_point(alpha = 0.4, color = "darkgreen") +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  geom_point(alpha = 0.5, color = "#4C78A8", size = 1.2) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray40") +
   labs(
-    title = "Random Forest: Predicted vs Observed Mortality",
-    x = "Observed Mortality",
-    y = "Predicted Mortality") +
-  theme_minimal()
+    title = "Random Forest: Predicted vs. Observed Mortality",
+    subtitle = paste0("Test set R² = ", round(r_squared, 3)),
+    x = "Observed Mortality Rate (per 100,000)",
+    y = "Predicted Mortality Rate (per 100,000)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
 
-# Save the plot to results/figures
+# Save the figure
 ggsave(
-  filename = here::here("results", "figures", "rf_pred_vs_obs.png"),
-  plot = rf_pred_plot,
-  width = 7, height = 5, dpi = 300)
+  here("results", "figures", "rf_pred_vs_obs.png"),
+  rf_pred_plot, width = 8, height = 6, dpi = 300)
 
 rf_pred_plot
+
 ```
 
-
 The predicted vs. observed plot shows close alignment with the 45-degree line for most observations, though some spread is visible at higher mortality levels.
-
 
 ### 4.2.3 Variable Importance
 
 Variable importance was assessed using impurity-based measures from the Random Forest model to identify top predictors of county-level mortality.
 
 ```{r}
-## Random Forest: Variable Importance Plot
+# Load the final fitted model
+final_rf_fit <- readRDS(here("results", "output", "final_rf_fit.rds"))
 
-# Load fitted model (if not already in memory)
-final_rf_fit <- readRDS(here::here("results", "output", "final_rf_fit.rds"))
-
-# Create VIP plot
-rf_vip_plot <- final_rf_fit %>%
+# Extract and clean variable importance
+rf_vip_data <- final_rf_fit %>%
   extract_fit_parsnip() %>%
-  vip::vip(num_features = 10) +
-  labs(title = "Top 10 Predictors (Random Forest)") +
-  theme_minimal()
+  vi() %>%
+  arrange(desc(Importance)) %>%
+  slice(1:10) %>%
+  mutate(
+    CleanLabel = Variable %>%
+      str_replace_all("_", " ") %>%
+      str_replace_all("\\.", " ") %>%
+      str_replace("age group Ages 65  years", "Age Group: 65+ years") %>%
+      str_replace("sex Male", "Sex: Male") %>%
+      str_replace("sex Female", "Sex: Female") %>%
+      str_replace("sex Overall", "Sex: Overall") %>%
+      str_replace("race ethnicity Black", "Race: Black") %>%
+      str_replace("race ethnicity White", "Race: White") %>%
+      str_replace("race ethnicity Hispanic", "Race: Hispanic") %>%
+      str_replace("race ethnicity Asian and Pacific Islander", "Race: Asian & Pacific Islander") %>%
+      str_replace("race ethnicity American Indian and Alaska Native", "Race: American Indian & Alaska Native") %>%
+      str_replace("race ethnicity Overall", "Race: Overall") %>%
+      str_squish()
+  )
 
-# Save the plot to results/figures
+# Create the VIP plot
+rf_vip_plot <- ggplot(rf_vip_data, aes(x = Importance, y = fct_reorder(CleanLabel, Importance))) +
+  geom_col(fill = "#4C78A8", width = 0.75) +
+  labs(
+    title = "Random Forest: Variable Importance",
+    subtitle = "Top 10 predictors ranked by permutation importance",
+    x = "Importance Score",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    axis.text.y = element_text(size = 12)
+  )
+
+# Save the plot
 ggsave(
-  filename = here::here("results", "figures", "rf_variable_importance.png"),
+  filename = here("results", "figures", "rf_variable_importance.png"),
   plot = rf_vip_plot,
-  width = 7)
+  width = 8,
+  height = 7,
+  dpi = 300
+)
 
 rf_vip_plot
 ```
-
 
 Variable importance analysis indicated that age_group_Ages.65.years was by far the most influential predictor in the random forest model. Other variables with moderate contributions included race_ethnicity_Black and race_ethnicity_Hispanic.
 
 A Random Forest model was tuned and evaluated to predict county-level hypertension-related cardiovascular mortality. On the held-out test set, the model achieved an RMSE of 115.3, MAE of 66.9, and R² of 0.748, indicating that it explained approximately 75% of the variance in mortality rates across U.S. counties. These results reflect strong predictive performance and consistency with cross-validation metrics.
 
 This model will serve as a benchmark against which we compare other algorithms, including regularized regression (e.g., LASSO). While random forest provided strong predictive performance, we next evaluated a regularized linear model (LASSO) to assess interpretability and feature selection trade-offs.
-
 
 ### 4.3 LASSO Regression
 
@@ -1813,6 +2283,92 @@ message("LASSO RMSE summary with CI estimates saved.")
 ```
 
 ```{r}
+# Define output path
+lasso_cv_rds_path <- here("results", "tables", "lasso_cv_performance_table.rds")
+
+if (file.exists(lasso_cv_rds_path)) {
+  message("LASSO CV performance table already exists. Skipping evaluation...")
+  lasso_cv_gt_ci <- readRDS(lasso_cv_rds_path)
+
+} else {
+  message("Generating LASSO CV performance table from large file...")
+
+  # Load full tuned object
+  lasso_tuned <- readRDS(here("results", "large-files", "lasso_tuned.rds"))
+
+  # 1. Collect fold-level predictions and rename for yardstick
+  lasso_cv_pred <- collect_predictions(lasso_tuned) %>%
+    rename(truth = mortalities)
+
+  # 2. Identify best penalty based on average RMSE across folds
+  lasso_cv_best_penalty <- lasso_cv_pred %>%
+    group_by(penalty) %>%
+    yardstick::rmse(truth = truth, estimate = .pred) %>%
+    slice_min(.estimate) %>%
+    pull(penalty)
+  lasso_cv_best_penalty <- lasso_cv_best_penalty[1]  # ensure scalar
+
+  # 3. Filter only the rows with the selected penalty
+  lasso_cv_filtered <- lasso_cv_pred %>%
+    filter(penalty == lasso_cv_best_penalty)
+
+  # 4. Loop through folds to compute RMSE and R²
+  fold_ids <- unique(lasso_cv_filtered$id)
+
+  lasso_cv_fold_metrics <- lapply(fold_ids, function(fold) {
+    fold_data <- lasso_cv_filtered %>% filter(id == fold)
+    
+    tibble(
+      id = fold,
+      rmse = yardstick::rmse(fold_data, truth = truth, estimate = .pred)[[".estimate"]],
+      rsq  = yardstick::rsq(fold_data, truth = truth, estimate = .pred)[[".estimate"]]
+    )
+  }) %>%
+    bind_rows()
+
+  # 5. Create 95% CI summary table
+  lasso_cv_ci_table <- tibble(
+    `Selected Penalty` = lasso_cv_best_penalty,
+    `RMSE (95% CI)` = sprintf("%.2f [%.2f, %.2f]",
+                              mean(lasso_cv_fold_metrics$rmse),
+                              mean(lasso_cv_fold_metrics$rmse) - 1.96 * sd(lasso_cv_fold_metrics$rmse),
+                              mean(lasso_cv_fold_metrics$rmse) + 1.96 * sd(lasso_cv_fold_metrics$rmse)),
+    `R² (95% CI)` = sprintf("%.2f [%.2f, %.2f]",
+                            mean(lasso_cv_fold_metrics$rsq),
+                            mean(lasso_cv_fold_metrics$rsq) - 1.96 * sd(lasso_cv_fold_metrics$rsq),
+                            mean(lasso_cv_fold_metrics$rsq) + 1.96 * sd(lasso_cv_fold_metrics$rsq))
+  )
+
+  # 6. Format with gt
+  lasso_cv_gt_ci <- lasso_cv_ci_table %>%
+    gt() %>%
+    tab_header(
+      title = md("**LASSO CV Performance Summary**"),
+      subtitle = "Mean RMSE and R² with 95% CI across CV folds"
+    ) %>%
+    tab_options(
+      table.font.size = "small",
+      table.width = pct(70),
+      column_labels.font.weight = "bold",
+      data_row.padding = px(3)
+    )
+
+  # 7. Save outputs
+  saveRDS(lasso_cv_gt_ci, lasso_cv_rds_path)
+  gtsave(lasso_cv_gt_ci,
+         filename = here("results", "tables", "lasso_cv_performance_table.png"),
+         expand = 3)
+}
+
+# View (always)
+lasso_cv_gt_ci
+
+
+```
+
+Cross-validation results for the LASSO regression model demonstrated consistent performance across folds. The model achieved a mean RMSE of 119.63 (95% CI: 117.24, 122.02) and an R² of 0.73 (95% CI: 0.72, 0.73), indicating high stability in predictive accuracy and explained variance. These narrow confidence intervals suggest minimal variability across folds, further supporting the robustness and generalizability of the LASSO model when applied to county-level mortality data.
+
+```{r}
 #Plot LASSO Tuning Plot
 # Plot RMSE vs penalty (log10 scale)
 lasso_tune_plot <- lasso_metrics %>%
@@ -1827,20 +2383,19 @@ lasso_tune_plot <- lasso_metrics %>%
        y = "Mean RMSE")
 
 # Save to results/figures
-ggsave(filename = here::here("results", "figures", "lasso_tuning_plot.png"),
+invisible(ggsave(filename = here::here("results", "figures", "lasso_tuning_plot.png"),
   plot = lasso_tune_plot,
-  width = 7, height = 5, dpi = 300)
+  width = 7, height = 5, dpi = 300))
 
 lasso_tune_plot
 ```
 
-
-LASSO tuning selected a penalty value of approximately 0.0001, minimizing RMSE at ~119.63. Coefficient shrinkage was applied, resulting in the exclusion of several predictors and aiding model interpretability.
-
+LASSO tuning selected a penalty value of approximately 0.0001, minimizing RMSE at \~119.63. Coefficient shrinkage was applied, resulting in the exclusion of several predictors and aiding model interpretability.
 
 ### 4.3.2 Model Performance
 
 The final LASSO model is evaluated on the test set and compared to the Random Forest model in terms of predictive accuracy and fit.
+
 ```{r}
 ## Final LASSO Model Fit and Evaluation
 
@@ -1887,35 +2442,41 @@ print(lasso_test_metrics)
 
 The LASSO model achieved an RMSE of 119.54, MAE of 70.66, and R² of 0.727 on the test set. While performance was slightly below that of the random forest model, LASSO retained strong explanatory power and offers the advantage of interpretability through variable selection.
 
-
-
 ```{r}
 ## LASSO: Predicted vs Observed Plot
+# Load test predictions
+lasso_predictions <- readRDS(here("results", "output", "lasso_test_predictions.rds"))
 
-# Load predictions (if not already in memory)
-lasso_test_predictions <- readRDS(here::here("results", "output", "lasso_test_predictions.rds"))
+# Compute R² on test set
+lasso_r2 <- cor(lasso_predictions$mortalities, lasso_predictions$.pred)^2
 
-lasso_pred_plot <- ggplot(lasso_test_predictions, aes(x = mortalities, y = .pred)) +
-  geom_point(alpha = 0.4, color = "steelblue") +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+# Create plot
+lasso_pred_plot <- ggplot(lasso_predictions, aes(x = mortalities, y = .pred)) +
+  geom_point(alpha = 0.4, color = "#4C78A8", size = 1.2) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray40") +
   labs(
-    title = "LASSO Regression: Predicted vs Observed Mortality",
-    x = "Observed Mortality",
-    y = "Predicted Mortality") +
-  theme_minimal()
+    title = "LASSO Regression: Predicted vs. Observed Mortality",
+    subtitle = paste0("Test set R² = ", round(lasso_r2, 3)),
+    x = "Observed Mortality Rate (per 100,000)",
+    y = "Predicted Mortality Rate (per 100,000)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
 
-# Save to file
+# Save as PNG
 ggsave(
-  filename = here::here("results", "figures", "lasso_pred_vs_obs.png"),
-  plot = lasso_pred_plot,
-  width = 7, height = 5, dpi = 300)
+  here("results", "figures", "lasso_pred_vs_obs.png"),
+  lasso_pred_plot,
+  width = 8, height = 6, dpi = 300
+)
 
 lasso_pred_plot
 ```
 
-
 LASSO is a linear model with regularization — it struggles to capture high-order nonlinear patterns. The horizontal “bands” in predicted values suggest that LASSO may be underfitting in high or low mortality counties. While LASSO remains interpretable, random forest outperforms it in predictive power and flexibility, especially in a dataset with many categorical and potentially non-linear features.
-
 
 ```{r}
 lasso_summary_table <- lasso_test_metrics %>%
@@ -1927,106 +2488,361 @@ lasso_summary_table <- lasso_test_metrics %>%
   ) %>%
   select(Model, RMSE = rmse, R2 = rsq, MAE = mae, Notes)
 
-saveRDS(lasso_summary_table, here::here("results", "tables", "lasso_model_summary.rds"))
+invisible(saveRDS(lasso_summary_table, here::here("results", "tables", "lasso_model_summary.rds")))
 
 lasso_summary_table
 ```
 
-
-LASSO regression achieved slightly lower performance than random forest, with an RMSE of ~119.6 and R² of ~0.726indicating a reasonably strong fit for predicting county-level hypertension-related mortality. Compared to the random forest model, LASSO performs slightly worse, but still retains good explanatory power. While LASSO is less flexible than random forest, it offers interpretability through regularization and feature selection. These trade-offs motivate the direct comparison presented in the next section.
+LASSO regression achieved slightly lower performance than random forest, with an RMSE of \~119.6 and R² of \~0.726indicating a reasonably strong fit for predicting county-level hypertension-related mortality. Compared to the random forest model, LASSO performs slightly worse, but still retains good explanatory power. While LASSO is less flexible than random forest, it offers interpretability through regularization and feature selection. These trade-offs motivate the direct comparison presented in the next section.
 
 Notably, LASSO applies regularization and performs variable selection, meaning it can identify the most influential predictors while shrinking the less important ones to zero. This makes it a useful, interpretable model for identifying risk factors — though it sacrifices some predictive accuracy compared to Random Forest.
 
-
-
-### 4.4 Model Comparison
-
-To directly compare model performance, we generated side-by-side summaries of RMSE, R², and MAE for both random forest and LASSO regression using the test dataset. Confidence intervals are provided where available.
-
-Generating a model comparison table:
+### 4.4 Train vs. Test Set Performance
 
 ```{r}
+# Predict on train data — Random Forest
+rf_train_predictions <- predict(final_rf_fit, new_data = train_data) %>%
+  bind_cols(train_data %>% select(mortalities))
 
-## Generate model comparison table with 95% confidence intervals
+# Predict on test data — already exists
+rf_test_predictions <- readRDS(here("results", "output", "rf_test_predictions.rds"))
 
-# Load test metrics
-rf_test_metrics <- readRDS(here::here("results", "output", "rf_test_metrics.rds"))
-lasso_metrics <- readRDS(here::here("results", "output", "lasso_test_metrics.rds"))
+# Evaluate
+rf_train_metrics <- rf_train_predictions %>%
+  metrics(truth = mortalities, estimate = .pred) %>%
+  mutate(Model = "Random Forest", Dataset = "Train")
 
-# Add model names
-rf_test_metrics$model <- "Random Forest"
-lasso_metrics$model <- "LASSO Regression"
+rf_test_metrics <- rf_test_predictions %>%
+  metrics(truth = mortalities, estimate = .pred) %>%
+  mutate(Model = "Random Forest", Dataset = "Test")
+
+# Predict on train data — LASSO
+lasso_train_predictions <- predict(final_lasso_fit, new_data = train_data) %>%
+  bind_cols(train_data %>% select(mortalities))
+
+# Predict on test data — already exists
+lasso_test_predictions <- readRDS(here("results", "output", "lasso_test_predictions.rds"))
+
+# Evaluate
+lasso_train_metrics <- lasso_train_predictions %>%
+  metrics(truth = mortalities, estimate = .pred) %>%
+  mutate(Model = "LASSO Regression", Dataset = "Train")
+
+lasso_test_metrics <- lasso_test_predictions %>%
+  metrics(truth = mortalities, estimate = .pred) %>%
+  mutate(Model = "LASSO Regression", Dataset = "Test")
 
 # Combine
-all_metrics <- bind_rows(rf_test_metrics, lasso_metrics)
+train_test_metrics_combined <- bind_rows(
+  rf_train_metrics, rf_test_metrics,
+  lasso_train_metrics, lasso_test_metrics)
 
-# Check if std_err is available
-has_se <- "std_err" %in% names(all_metrics)
-
-# Define function to create CI string
-format_ci <- function(mean, se = NA) {
-  if (is.na(se) || se == 0) return(as.character(round(mean, 2)))
-  lower <- round(mean - 1.96 * se, 2)
-  upper <- round(mean + 1.96 * se, 2)
-  paste0(round(mean, 2), " [", lower, ", ", upper, "]")}
-
-# Create final table
-if (has_se) {
-  # Use CI formatting
-  all_metrics_ci <- all_metrics %>%
-    select(model, .metric, mean = .estimate, std_err) %>%
-    mutate(ci = mapply(format_ci, mean, std_err)) %>%
-    select(model, .metric, ci) %>%
-    pivot_wider(names_from = .metric, values_from = ci)
-} else {
-  # Fall back to just point estimates
-  all_metrics_ci <- all_metrics %>%
-    select(model, .metric, mean = .estimate) %>%
-    mutate(ci = round(mean, 2)) %>%
-    select(model, .metric, ci) %>%
-    pivot_wider(names_from = .metric, values_from = ci)}
+# Format wide
+train_test_wide <- train_test_metrics_combined %>%
+  select(Model, Dataset, .metric, .estimate) %>%
+  tidyr::pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  mutate(
+    RMSE = sprintf("%.2f", rmse),
+    MAE = sprintf("%.2f", mae),
+    R2  = sprintf("%.2f", rsq)
+  ) %>%
+  select(Model, Dataset, RMSE, MAE, R2)
 
 # Build gt table
-model_perf_ci_table <- all_metrics_ci %>%
+train_test_performance_table <- train_test_wide %>%
   gt() %>%
   tab_header(
-    title = "Model Performance Summary",
-    subtitle = "Test Set Evaluation for Random Forest and LASSO") %>%
+    title = md("**Model Performance: Train vs. Test Set**"),
+    subtitle = "Evaluation metrics for Random Forest and LASSO"
+  ) %>%
   cols_label(
-    model = "Model",
-    rmse = "RMSE",
-    rsq = "R²",
-    mae = "MAE") %>%
-  fmt_markdown(columns = everything()) %>%
+    RMSE = "RMSE",
+    MAE = "MAE",
+    R2 = "R²"
+  ) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(columns = "Model")
+  ) %>%
   tab_options(
-    table.font.size = px(12),
-    heading.title.font.size = px(14),
-    heading.subtitle.font.size = px(12),
-    column_labels.font.weight = "bold")
+    table.font.size = "small",
+    table.width = pct(100),
+    column_labels.font.weight = "bold"
+  )
 
-# Save table
-saveRDS(model_perf_ci_table, here::here("results", "tables", "model_performance_summary.rds"))
+# Save
+saveRDS(train_test_performance_table, here("results", "tables", "model_train_test_comparison.rds"))
 
-# View it
-model_perf_ci_table
+gtsave(
+  train_test_performance_table,
+  filename = here("results", "tables", "model_train_test_comparison.png"),
+  expand = 5)
+
+# View inline
+train_test_performance_table
 
 ```
 
-Additional comparison table without CIs:
+These results indicate that both the Random Forest and LASSO models perform consistently on the training and test datasets, with near-identical RMSE, MAE, and R² values across splits. This suggests that the models are well-tuned and exhibit no signs of overfitting, supporting their generalizability to unseen data.
+
+### 4.5 Model Comparison (Including Null Model)
+
+#### 4.5.1 Null Model (Baseline Performance)
 
 ```{r}
-model_perf_numeric <- bind_rows(rf_test_metrics, lasso_metrics) %>%
-  select(model, .metric, .estimate) %>%
-  pivot_wider(names_from = .metric, values_from = .estimate)
+# Load train and test data
+# train_data and test_data should contain the outcome: mortalities
 
-saveRDS(model_perf_numeric, here::here("results", "output", "model_performance_numeric.rds"))
+# 1. Compute the mean outcome in the training data
+mean_train_mortality <- mean(train_data$mortalities)
 
-model_perf_numeric
+# 2. Create a prediction column in test data
+null_predictions <- test_data %>%
+  mutate(.pred = mean_train_mortality)
+
+# 3. Calculate performance metrics
+null_test_metrics <- null_predictions %>%
+  yardstick::metrics(truth = mortalities, estimate = .pred)
+
+# 4. Reformat for consistency with other model outputs
+null_summary <- null_test_metrics %>%
+  select(.metric, .estimate) %>%
+  pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  mutate(
+    R2 = ifelse(is.na(rsq), NA_real_, rsq),
+    Model = "Null Model",
+    Notes = "Predicts mean of training set"
+  ) %>%
+  select(Model, RMSE = rmse, R2 = rsq, MAE = mae, Notes)
+
+# Save to use in table if desired
+saveRDS(null_summary, here::here("results", "output", "null_model_summary.rds"))
+
+# preview
+null_summary
+
 ```
 
+Note: The null model does not produce a valid R² because it predicts a constant value, resulting in undefined correlation.
+
+#### 4.5.2 LASSO and RF Model Comparison
+
+Comnparing model performance metrics between LASSO and RF. Generating a model comparison table:
+
+```{r}
+# Load saved test metrics
+rf_test_metrics <- readRDS(here("results", "output", "rf_test_metrics.rds"))
+lasso_test_metrics <- readRDS(here("results", "output", "lasso_test_metrics.rds"))
+
+# Summarize RF
+rf_summary <- rf_test_metrics %>%
+  select(.metric, .estimate) %>%
+  pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  mutate(
+    Model = "Random Forest",
+    Notes = "Tuned (mtry = 4, min_n = 15)"
+  ) %>%
+  select(Model, RMSE = rmse, R2 = rsq, MAE = mae, Notes)
+
+# Summarize LASSO
+lasso_summary <- lasso_test_metrics %>%
+  select(.metric, .estimate) %>%
+  pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  mutate(
+    Model = "LASSO Regression",
+    Notes = "Penalty = 0.1"
+  ) %>%
+  select(Model, RMSE = rmse, R2 = rsq, MAE = mae, Notes)
+
+# Combine summaries
+model_summary <- bind_rows(rf_summary, lasso_summary)
+
+# Create polished gt table
+model_performance_summary_table <- model_summary %>%
+  gt() %>%
+  tab_header(
+    title = md("**Model Performance Summary**"),
+    subtitle = "Held-out test set evaluation for Random Forest and LASSO"
+  ) %>%
+  fmt_number(columns = c(RMSE, R2, MAE), decimals = 2) %>%
+  cols_label(
+    RMSE = "RMSE",
+    R2 = "R²",
+    MAE = "MAE",
+    Notes = "Model Details"
+  ) %>%
+  tab_options(
+    table.font.size = "small",
+    data_row.padding = px(4),
+    table.width = pct(100))
+
+# Save as RDS
+saveRDS(model_performance_summary_table, here("results", "tables", "model_performance_summary.rds"))
+
+# Save as PNG
+gtsave(data = model_performance_summary_table,
+  filename = here("results", "tables", "model_performance_summary.png"),
+  expand = 5)
+
+# Also save numeric summary (wide format)
+saveRDS(model_summary, here("results", "output", "model_performance_numeric.rds"))
+
+
+model_performance_summary_table
+```
+
+To directly compare model performance, we generated side-by-side summaries of RMSE, R², and MAE for both random forest and LASSO regression using the test dataset.
 
 Random forest outperformed LASSO on all metrics, with lower RMSE (115.3 vs. 119.5), lower MAE (66.9 vs. 70.7), and higher R² (0.748 vs. 0.727). While both models demonstrated good predictive accuracy, random forest offered stronger overall performance.
 
+#### 4.4.3 Comparing the LASSO and RF models to the Null model
 
-Aim 4 Summary:
-We compared two predictive models for county-level hypertension-related CVD mortality: a random forest model and a LASSO regression model. The random forest achieved the best performance, with an RMSE of 115.3 and R² of 0.748 on the test set. LASSO regression performed slightly worse (RMSE = 119.6, R² = 0.726) but offers the benefit of interpretability through feature selection. These results indicate strong overall predictive performance, with random forest serving as the best-performing model. Both models demonstrated solid predictive performance, with random forest performing best. The structured pattern seen in the predicted vs observed plots reflects the nature of the input data — with many counties having identical values for categorical groupings. The use of dummy variables, while necessary, introduces constraints that can create repeated predictions for common demographic combinations, especially in linear models like LASSO. This highlights a trade-off between model interpretability and flexibility.
+```{r}
+# Format RF
+rf_metrics_for_null <- rf_test_metrics %>%
+  select(.metric, .estimate) %>%
+  pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  mutate(Model = "Random Forest")
+
+# Format LASSO
+lasso_metrics_for_null <- lasso_test_metrics %>%
+  select(.metric, .estimate) %>%
+  pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  mutate(Model = "LASSO Regression")
+
+# Format Null
+null_metrics_for_null <- null_summary %>%
+  mutate(Model = "Null Model") %>%
+  select(Model, RMSE, R2, MAE)
+
+# Combine with MAE before R2
+model_comparison_null_data <- bind_rows(
+  rf_metrics_for_null %>% select(Model, RMSE = rmse, MAE = mae, R2 = rsq),
+  lasso_metrics_for_null %>% select(Model, RMSE = rmse, MAE = mae, R2 = rsq),
+  null_metrics_for_null %>% select(Model, RMSE, MAE, R2)
+)
+
+# Format as strings for clean spacing
+model_comparison_null_table <- model_comparison_null_data %>%
+  mutate(
+    RMSE = sprintf("%.2f", RMSE),
+    MAE  = sprintf("%.2f", MAE),
+    R2   = ifelse(is.na(R2), "–", sprintf("%.2f", R2))
+  ) %>%
+  gt() %>%
+  tab_header(
+    title = md("**Model Comparison Including Null Model**"),
+    subtitle = "Performance on held-out test set"
+  ) %>%
+  cols_label(
+    RMSE = "RMSE",
+    MAE  = "MAE",
+    R2   = "R²"
+  ) %>%
+  tab_options(
+    table.font.size = "small",
+    data_row.padding = px(4),
+    table.width = pct(100),
+    column_labels.font.weight = "bold"
+  )
+
+# Save
+saveRDS(model_comparison_null_table, here("results", "output", "statistical-analysis", "model_null_comparison_table.rds"))
+
+gtsave(model_comparison_null_table,
+       filename = here("results", "tables", "model_null_comparison_table.png"),
+       expand = 5)
+
+model_comparison_null_table
+```
+
+Reproducing the table for the manuscript:
+
+```{r}
+# 1. RF Summary for null-inclusive table
+null_comparison_rf_summary <- rf_test_metrics %>%
+  select(.metric, .estimate) %>%
+  tidyr::pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  mutate(
+    Model = "Random Forest",
+    Notes = "Tuned (mtry = 4, min_n = 15)"
+  ) %>%
+  select(Model, RMSE = rmse, R2 = rsq, MAE = mae, Notes)
+
+# 2. LASSO Summary for null-inclusive table
+null_comparison_lasso_summary <- lasso_test_metrics %>%
+  select(.metric, .estimate) %>%
+  tidyr::pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  mutate(
+    Model = "LASSO Regression",
+    Notes = "Penalty = 0.1"
+  ) %>%
+  select(Model, RMSE = rmse, R2 = rsq, MAE = mae, Notes)
+
+# 3. Null model summary for table
+null_comparison_null_summary <- null_summary %>%
+  mutate(
+    Model = "Null Model",
+    R2 = NA_real_,
+    Notes = "Predicts mean of training set"
+  ) %>%
+  select(Model, RMSE, R2, MAE, Notes)
+
+# 4. Combine rows into single summary
+null_comparison_summary_all <- bind_rows(
+  null_comparison_rf_summary,
+  null_comparison_lasso_summary,
+  null_comparison_null_summary
+)
+
+# 5. Create gt table
+null_comparison_gt_table <- null_comparison_summary_all %>%
+  mutate(
+    RMSE = sprintf("%.2f", RMSE),
+    MAE  = sprintf("%.2f", MAE),
+    R2   = ifelse(is.na(R2), "–", sprintf("%.2f", R2))
+  ) %>%
+  select(Model, RMSE, MAE, R2, Notes) %>%
+  gt() %>%
+  tab_header(
+    title = md("**Model Performance Summary**"),
+    subtitle = "Held-out test set evaluation for Random Forest, LASSO, and Null Model"
+  ) %>%
+  cols_label(
+    RMSE = "RMSE",
+    MAE  = "MAE",
+    R2   = "R²",
+    Notes = "Model Details"
+  ) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(columns = "Model")
+  ) %>%
+  tab_options(
+    table.font.size = "14",
+    data_row.padding = px(3),
+    table.width = pct(65),
+    column_labels.font.weight = "bold"
+  )
+
+
+# 6. Save outputs
+saveRDS(null_comparison_gt_table, here("results", "output", "statistical-analysis", "final_model_performance_table.rds"))
+
+gtsave(
+  data = null_comparison_gt_table,
+  filename = here("results", "tables", "final_model_performance_table.png"),
+  expand = 3
+)
+
+# 7. Save raw data
+saveRDS(null_comparison_summary_all, here("results", "output", "statistical-analysis", "model_performance_with_null_numeric.rds"))
+
+# View table
+null_comparison_gt_table
+
+```
+
+4.4.3 Null Model Comparison To contextualize model performance, a null model was included that predicted the mean training set mortality rate for all test observations. This baseline yielded substantially higher error metrics, with an RMSE of 228.65 and a mean absolute error (MAE) of 192.28. As expected, R² was undefined for the null model due to its constant prediction, which results in zero variance. In contrast, both the Random Forest (RMSE = 115.30; R² = 0.75) and LASSO regression (RMSE = 119.54; R² = 0.73) models significantly outperformed the null model across all metrics. This confirms that even the more constrained linear model (LASSO) captured meaningful structure in the data beyond what could be explained by the overall average alone.
+
+Aim 4 Summary: We compared two predictive models for county-level hypertension-related CVD mortality: a random forest model and a LASSO regression model. The random forest achieved the best performance, with an RMSE of 115.3 and R² of 0.748 on the test set. LASSO regression performed slightly worse (RMSE = 119.6, R² = 0.726) but offers the benefit of interpretability through feature selection. These results indicate strong overall predictive performance, with random forest serving as the best-performing model. Both models demonstrated solid predictive performance, with random forest performing best. The structured pattern seen in the predicted vs observed plots reflects the nature of the input data — with many counties having identical values for categorical groupings. The use of dummy variables, while necessary, introduces constraints that can create repeated predictions for common demographic combinations, especially in linear models like LASSO. This highlights a trade-off between model interpretability and flexibility.
