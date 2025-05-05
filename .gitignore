@@ -36,3 +36,13 @@ results/large-files/*
 
 # But we want to commit the folder and the readme!
 !results/large-files/readme.md
+
+#Ignoring files for Renv
+# Ignore local renv packages and temp files
+renv/library/
+renv/staging/
+
+# Ensure these essential files are still tracked
+!renv.lock
+!renv/activate.R
+

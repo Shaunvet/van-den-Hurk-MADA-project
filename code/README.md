@@ -15,4 +15,4 @@ To replicate this analysis, run the scripts within the code folder in the follow
 (Note: This is a large script and will take some time and processing power to run. The script uses loops to load saved data to reduce computation but expect it to take about 15 minutes to run the full script even with those steps.)
 
 
-
+^^Note: processing-code/processing-code.qmd - This file will not run as the Excel CSV file is not in the repository due to size limitations. It was included purely to demonstrate processing steps. You can contact the author to get it or download the file directly from the CDC website if you wish to run this yourself.

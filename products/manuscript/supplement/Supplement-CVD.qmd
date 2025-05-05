@@ -22,9 +22,7 @@ knitr::include_graphics(here::here("results", "tables", "mortality_summary_by_ra
 cat("**Supplementary Table S1.** Mean and median county-level mortality rates per 100,000 by race/ethnicity (2000–2019).\n\n")
 ```
 
-
 \`\`\`
-
 
 ```{r}
 #| echo: FALSE
@@ -34,9 +32,7 @@ cat("**Supplementary Figure S1.** Observed and predicted mortality rates by race
 
 ```
 
-
 \`\`\`
-
 
 ```{r}
 #| echo: FALSE
@@ -46,9 +42,7 @@ knitr::include_graphics(here::here("results", "figures", "spatial_plot_all.png")
 cat("**Supplementary Figure S2.** Spatial distribution of hypertension-related mortality – All Races.\n\n")
 ```
 
-
 \`\`\`
-
 
 ```{r}
 #| echo: FALSE
@@ -60,11 +54,9 @@ cat("**Supplementary Figure S3.** Spatial distribution of hypertension-related m
 
 ```
 
-
 The combined plot (Supplement Figure 3) provides an overview of mortality patterns across groups. While harder to read at the small scale once rendered in Word, it was still included as it offers helpful visual context when reviewed alongside the full-size individual maps.
 
 \`\`\`
-
 
 ```{r}
 #| echo: FALSE
@@ -74,9 +66,7 @@ knitr::include_graphics(here::here("results", "figures", "white_spatial_plot.png
 cat("**Supplementary Figure S4.** Spatial distribution of hypertension-related mortality – White population.\n\n")
 ```
 
-
 \`\`\`
-
 
 ```{r}
 #| echo: FALSE
@@ -86,9 +76,7 @@ knitr::include_graphics(here::here("results", "figures", "hispanic_spatial_plot.
 cat("**Supplementary Figure S5.** Spatial distribution of hypertension-related mortality – Hispanic population.\n\n")
 ```
 
-
 \`\`\`
-
 
 ```{r}
 #| echo: FALSE
@@ -98,9 +86,7 @@ knitr::include_graphics(here::here("results", "figures", "native_spatial_plot.pn
 cat("**Supplementary Figure S6.** Spatial distribution of hypertension-related mortality – American Indian and Alaska Native population.\n\n")
 ```
 
-
 \`\`\`
-
 
 ```{r}
 #| echo: FALSE
@@ -110,9 +96,7 @@ knitr::include_graphics(here::here("results", "figures", "lisa_cluster_type_map.
 cat("**Supplementary Figure S7.** Local Indicators of Spatial Association (LISA) cluster map for the contiguous United States. The map identifies county-level clusters of high or low mortality rates relative to their neighbors. Statistically significant clusters include high–high (mortality hotspots), low–low (coldspots), and spatial outliers (high–low or low–high), with color coding based on the spatial relationship and statistical significance.\n\n")
 ```
 
-
 \`\`\`
-
 
 ```{r}
 #| echo: FALSE
@@ -122,9 +106,7 @@ knitr::include_graphics(here::here("results", "figures", "ga_lisa_cluster_plot.p
 cat("**Supplementary Figure S8.** Local Indicators of Spatial Association (LISA) cluster map for Georgia. This map visualizes statistically significant local spatial autocorrelation in hypertension-related mortality rates across counties in Georgia. High–high clusters indicate counties with high mortality rates surrounded by similarly high neighbors, while low–low clusters represent the opposite. Other categories denote spatial outliers and areas with no significant local clustering.\n\n")
 ```
 
-
 \`\`\`
-
 
 ```{r}
 #| echo: FALSE
@@ -134,9 +116,7 @@ knitr::include_graphics(here::here("results", "figures", "lisa_cluster_kentucky.
 cat("**Supplementary Figure S9.** Local Indicators of Spatial Association (LISA) cluster map for Kentucky. This figure shows localized spatial clusters of hypertension-related mortality, highlighting counties with significantly elevated or reduced mortality compared to their immediate neighbors. High–high clusters represent potential hotspots for targeted public health intervention.\n\n")
 ```
 
-
 \`\`\`
-
 
 ```{r}
 #| echo: FALSE
@@ -146,9 +126,7 @@ knitr::include_graphics(here::here("results", "tables", "model_train_test_compar
 cat("**Supplementary Table S2.** Train and test set performance metrics for Random Forest and LASSO models. Metrics include RMSE, MAE, and R². Similar values across splits indicate strong generalization and minimal overfitting.\n\n")
 ```
 
-
 \`\`\`
-
 
 ```{r}
 #| echo: FALSE
@@ -161,8 +139,6 @@ cat("**Supplementary Table S3.** Ten-fold cross-validation performance metrics f
 Cross-validation performance metrics for Random Forest model. Mean RMSE and R² values are shown across 10-fold cross-validation for selected hyperparameter combinations (mtry and min_n). Values reflect consistent predictive performance across folds, indicating high model stability.
 
 \`\`\`
-
-
 
 ```{r}
 #| echo: FALSE
@@ -182,22 +158,30 @@ Cross-validation performance metrics for LASSO regression model. Mean RMSE and R
 
 To fully reproduce all steps of the project, the code should be run in the following order:
 
-1. processing-code/processing-code.qmd 
-2. eda-code/eda.qmd
-3. analysis-code/statistical-analysis-v2-slim.qmd* 
-4. products/manuscript/Manuscript.qmd
-5. products/manuscript/supplement/Supplement-CVD.qmd 
+1.  processing-code/processing-code.qmd^^ (Not required to reproduce results - This file will not run - see below)
+2.  processing-code/processingfile-v1.qmd
+3.  eda-code/eda.qmd
+4.  analysis-code/statistical-analysis-v2-slim.qmd\*
+5.  products/manuscript/Manuscript.qmd
+6.  products/manuscript/supplement/Supplement-CVD.qmd
 
-*Note: This is a large script and will take some time and processing power to run. The script uses loops to load saved data to reduce computation but expect it to take about 15 minutes to run the full script even with those steps.
+\*Note: This is a large script and will take some time and processing power to run. The script uses loops to load saved data to reduce computation but expect it to take about 15 minutes to run the full script even with those steps.
 
-Note: Because all data, figures, and tables are saved in the relevant subfolders, the manuscript 
-can be produced by simply running the Manuscript.qmd file.
+Note: Because all data, figures, and tables are saved in the relevant subfolders, the manuscript can be produced by simply running the Manuscript.qmd file.
 
-Note: processing-code/processing-code.qmd - This file will not run as the Excel CSV file is not in the repository due to size limitations. It was included purely to demonstrate processing steps. You can contact the author to get it or download the file directly from the CDC website if you wish to run this yourself.
+^^Note: processing-code/processing-code.qmd - This file will not run as the Excel CSV file is not in the repository due to size limitations. It was included purely to demonstrate processing steps. You can contact the author to get it or download the file directly from the CDC website if you wish to run this yourself.
 
+### Software Packages and Environment
 
+All analyses presented in this project were performed using R within a version-controlled environment managed by the `renv` package. This ensures that all package versions and dependencies used to generate figures and tables are locked and reproducible.
 
-### Software packages
+To reproduce this analysis:
+
+1.  Clone the repository.
+2.  Open the project in R or RStudio.
+3.  Restore the environment by running:
+
+#renv::restore()
 
 The analysis was conducted using R version 4.4.0 (2024-04-24 ucrt) on a Windows 11 x64 system via RStudio 2024.12.0+467. The Quarto engine, R packages, and their versions used in this analysis are listed below to support full reproducibility.
 
@@ -210,8 +194,7 @@ Windows 11 x64 (build 26100)
 **RStudio version:**\
 2024.12.0+467 Kousa Dogwood
 
-**Session packages:**\
-*(includes attached and namespace-loaded packages)*
+**Key R Packages Used (Attached or namespace-loaded)**
 
 -   **tidymodels** 1.3.0
 -   **tidyverse** 2.0.0
